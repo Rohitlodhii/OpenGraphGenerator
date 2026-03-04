@@ -1,17 +1,12 @@
 "use client"
 
-import React, { useState, useRef } from "react"
+import React, { useState } from "react"
 import { ZoomIn, ZoomOut, Maximize2, Minimize2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import useDimensionStore from "@/hooks/dimension"
-import Draggable from "react-draggable"
-import { useBackgroundStore } from "@/store/backgroundstore"
-import { useMeshStore } from "@/store/meshstore"
-import MeshGradientBlob from "../previewers/MeshGradientBlob"
-import SolidColorPreviewer from "../previewers/SolidColorPreviewer"
-import ImagePreviewer from "../previewers/ImagePreviewer"
-import SvgGradientPreviewer from "../previewers/SvgGradientPreviewer"
-import { useImageStore } from "@/store/imagestore"
+import Stage from "./Stage"
+import BackgroundRenderer from "./BackgroundRenderer"
+import ObjectsLayer from "./ObjectsLayer"
 
 const Previewer = () => {
   const [zoom, setZoom] = useState(70)
@@ -19,11 +14,6 @@ const Previewer = () => {
 
   const width = useDimensionStore((s) => s.width)
   const height = useDimensionStore((s) => s.height)
-  const { backgroundType } = useBackgroundStore()
-  const { src } = useImageStore()
-
-  const dragRef = useRef<HTMLDivElement>(null)
-
 
   const zoomIn = () => setZoom((z) => Math.min(z + 10, 200))
   const zoomOut = () => setZoom((z) => Math.max(z - 10, 25))
@@ -36,33 +26,10 @@ const Previewer = () => {
 
       {/* Preview Area */}
       <div className="flex-1 relative overflow-hidden flex items-center justify-center">
-
-        <Draggable nodeRef={dragRef} defaultPosition={{ x: 0, y: 0 }}>
-          <div ref={dragRef} className="cursor-grab">
-            
-            <div
-              style={{
-                transform: `scale(${zoom / 100})`,
-                transformOrigin: "center",
-              }}
-            >
-              {backgroundType === 'solid' && (
-                <SolidColorPreviewer width={width} height={height} className="shadow-xl rounded-lg" />
-              )}
-              {backgroundType === 'image' && (
-                <ImagePreviewer width={width} height={height} className="shadow-xl rounded-lg" />
-              )}
-              {backgroundType === 'Svg Gradient' && (
-                <SvgGradientPreviewer width={width} height={height} className="shadow-xl rounded-lg" />
-              )}
-              {backgroundType === 'mesh' && (
-                <MeshGradientBlob width={width} height={height} className="shadow-xl rounded-lg" />
-              )}
-            </div>
-
-          </div>
-        </Draggable>
-
+        <Stage width={width} height={height} zoom={zoom}>
+          <BackgroundRenderer width={width} height={height} />
+          <ObjectsLayer zoom={zoom} />
+        </Stage>
       </div>
 
       {/* Toolbar */}
