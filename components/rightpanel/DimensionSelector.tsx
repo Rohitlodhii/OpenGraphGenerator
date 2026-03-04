@@ -38,11 +38,11 @@ const DimensionSelector = () => {
     <Popover>
       {/* Proper Trigger */}
       <PopoverTrigger>
-        <Card className="h-14 cursor-pointer rounded-none p-2 flex items-center justify-center">
+        <Card className="h-12 cursor-pointer rounded-xl p-2 flex items-center justify-center">
           <div className="flex w-full items-center justify-between px-4">
             <div className="flex gap-2 items-center">
               <Proportions className="h-4 w-4" />
-              <span>Dimensions</span>
+              <span className="text-sm">Preset</span>
             </div>
             <span className="text-muted-foreground text-xs">
               {width} × {height}

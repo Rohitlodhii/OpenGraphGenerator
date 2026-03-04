@@ -25,7 +25,7 @@ const selectTriggerVariants = cva(
       size: {
         default: "",
         lg: "min-h-10 sm:min-h-9",
-        sm: "min-h-8 gap-1.5 px-[calc(--spacing(2.5)-1px)] sm:min-h-7",
+        sm: "min-h-6 gap-1.5 px-4 sm:min-h-6 rounded-sm bg-secondary font-mono cursor-pointer",
       },
     },
   },
@@ -81,8 +81,9 @@ function SelectTrigger({
       {...props}
     >
       {children}
+       <span className=' h-full ring-1 ring-primary/10 group-hover:ring-amber-600/60 mr-1'></span>
       <SelectPrimitive.Icon data-slot="select-icon">
-        <ChevronsUpDownIcon className={selectTriggerIconClassName} />
+        <ChevronDownIcon className={selectTriggerIconClassName} />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
