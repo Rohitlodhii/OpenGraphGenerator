@@ -1,0 +1,229 @@
+"use client"
+
+import React, { useMemo } from "react"
+import { Crop, ImagePlus, Minus, Plus, Trash2, Upload } from "lucide-react"
+import { Button } from "../ui/button"
+import { Input } from "../ui/input"
+import { useCanvasStore } from "@/store/canvasstore"
+
+type ImageAddingPanelProps = {
+  isOpen: boolean
+  onToggle: () => void
+}
+
+const createId = () => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID()
+  }
+  return `image-${Date.now()}-${Math.floor(Math.random() * 100000)}`
+}
+
+const ImageAddingPanel = ({ isOpen, onToggle }: ImageAddingPanelProps) => {
+  const { objects, selectedObjectId, addObject, updateObject, removeObject, setSelectedObjectId } =
+    useCanvasStore()
+
+  const imageObjects = useMemo(
+    () =>
+      [...objects]
+        .filter((object) => object.type === "image")
+        .sort((a, b) => (b.zIndex ?? 0) - (a.zIndex ?? 0)),
+    [objects],
+  )
+
+  const selectedImageObject = useMemo(() => {
+    const selected = imageObjects.find((obj) => obj.id === selectedObjectId)
+    return selected ?? null
+  }, [imageObjects, selectedObjectId])
+
+  const handleFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files?.length) return
+
+    const maxZIndex = objects.reduce((max, object) => Math.max(max, object.zIndex ?? 0), 0)
+    Array.from(files).forEach((file, index) => {
+      const src = URL.createObjectURL(file)
+      addObject({
+        id: createId(),
+        type: "image",
+        src,
+        x: 80 + index * 10,
+        y: 80 + index * 10,
+        width: 260,
+        height: 180,
+        zIndex: maxZIndex + index + 1,
+        imageCropX: 0,
+        imageCropY: 0,
+        imageCropScale: 1,
+      })
+    })
+
+    event.target.value = ""
+  }
+
+  const compactButton = "h-6 rounded-sm px-2 text-[11px]"
+  const compactIconButton = "h-6 w-6 rounded-sm p-0"
+  const compactInput = "h-6 w-16 rounded-sm px-2 text-xs focus-visible:ring-0 focus-visible:border-input"
+
+  return (
+    <div className="border border-border flex flex-col rounded-xl items-center overflow-hidden">
+      <div
+        className="flex gap-2 items-center justify-between w-full bg-sidebar h-14 px-4 border-b border-border cursor-pointer select-none"
+        onClick={onToggle}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault()
+            onToggle()
+          }
+        }}
+      >
+        <span className="text-sm font-medium">Images</span>
+        <ImagePlus className="h-4 w-4 text-muted-foreground" />
+      </div>
+
+      <div
+        className={`w-full px-4 transition-all duration-200 ${
+          isOpen ? "py-3" : "max-h-0 py-0 overflow-hidden"
+        }`}
+      >
+        <div className="w-full flex flex-col gap-3">
+          <label className="flex items-center justify-center gap-2 px-3 py-2 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition">
+            <input type="file" accept="image/*" multiple onChange={handleFiles} className="hidden" />
+            <Upload className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">Upload & Add Images</span>
+          </label>
+
+          {imageObjects.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span className="text-xs text-muted-foreground font-medium">Image Layers</span>
+              <div className="flex flex-col gap-1.5">
+                {imageObjects.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`h-8 border rounded-md px-2 flex items-center justify-between gap-2 ${
+                      selectedObjectId === item.id ? "border-primary" : "border-border"
+                    }`}
+                  >
+                    <button
+                      className="text-xs text-left truncate flex-1"
+                      onClick={() => setSelectedObjectId(item.id)}
+                    >
+                      Image {item.id.slice(0, 4)}
+                    </button>
+                    <button
+                      className="text-destructive"
+                      onClick={() => removeObject(item.id)}
+                      aria-label="Delete image"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {selectedImageObject && (
+            <>
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-medium text-muted-foreground">Crop Zoom</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className={compactIconButton}
+                    onClick={() =>
+                      updateObject(selectedImageObject.id, {
+                        imageCropScale: Math.max(1, (selectedImageObject.imageCropScale ?? 1) - 0.05),
+                      })
+                    }
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className={compactIconButton}
+                    onClick={() =>
+                      updateObject(selectedImageObject.id, {
+                        imageCropScale: Math.min(4, (selectedImageObject.imageCropScale ?? 1) + 0.05),
+                      })
+                    }
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    type="number"
+                    step="0.05"
+                    value={(selectedImageObject.imageCropScale ?? 1).toFixed(2)}
+                    onChange={(event) => {
+                      const parsed = Number(event.target.value)
+                      if (Number.isNaN(parsed)) return
+                      updateObject(selectedImageObject.id, {
+                        imageCropScale: Math.max(1, Math.min(4, parsed)),
+                      })
+                    }}
+                    className={compactInput}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Crop className="h-3.5 w-3.5" />
+                  Crop Offset
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex gap-2 h-6 border border-border rounded-md px-2 items-center">
+                    <span className="text-xs">X</span>
+                    <input
+                      type="number"
+                      value={Math.round(selectedImageObject.imageCropX ?? 0)}
+                      onChange={(event) => {
+                        const parsed = Number(event.target.value)
+                        if (Number.isNaN(parsed)) return
+                        updateObject(selectedImageObject.id, { imageCropX: parsed })
+                      }}
+                      className="h-6 border-0 ring-0 outline-0 text-xs w-full bg-transparent"
+                    />
+                  </div>
+                  <div className="flex gap-2 h-6 border border-border rounded-md px-2 items-center">
+                    <span className="text-xs">Y</span>
+                    <input
+                      type="number"
+                      value={Math.round(selectedImageObject.imageCropY ?? 0)}
+                      onChange={(event) => {
+                        const parsed = Number(event.target.value)
+                        if (Number.isNaN(parsed)) return
+                        updateObject(selectedImageObject.id, { imageCropY: parsed })
+                      }}
+                      className="h-6 border-0 ring-0 outline-0 text-xs w-full bg-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                size="sm"
+                variant="secondary"
+                className={compactButton}
+                onClick={() =>
+                  updateObject(selectedImageObject.id, {
+                    imageCropScale: 1,
+                    imageCropX: 0,
+                    imageCropY: 0,
+                  })
+                }
+              >
+                Reset Crop
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default ImageAddingPanel

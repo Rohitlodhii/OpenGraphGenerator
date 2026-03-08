@@ -1,7 +1,11 @@
-
 import React from 'react'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
-const AppHeader = () => {
+type AppHeaderProps = {
+  showSidebarToggle?: boolean
+}
+
+const AppHeader = ({ showSidebarToggle = false }: AppHeaderProps) => {
   return (      
     <div className='w-full h-14 p-2 border border-border flex items-center justify-between rounded-2xl'>
         <div className=' flex gap-2 items-center justify-center'>
@@ -9,9 +13,7 @@ const AppHeader = () => {
             <div className='font-mono'>  OPENGG</div>
         </div>
    
-        <div>
-            Xxxxxx
-        </div>
+        <div>{showSidebarToggle ? <SidebarTrigger aria-label="Toggle left sidebar" /> : null}</div>
     </div>
   )
 }

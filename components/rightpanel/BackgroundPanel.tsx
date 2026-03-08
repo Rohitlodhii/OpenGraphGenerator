@@ -1,9 +1,5 @@
 import React, { useState } from 'react'
 import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from '../ui/select'
-import BackgroundColorPicker from './BackgroundColorPicker'
-import { Card } from '../ui/card'
-import { Input } from '../ui/input'
-import ColorPopup from '../helpers/colorpopup'
 import { NewBackground } from './NewBackground'
 import { SolidColorPanel } from './SolidColorPanel'
 import { ImagePanel } from './ImagePanel'
@@ -20,22 +16,47 @@ const items = [
   { label: "Presets", value: 'presets' },
 ]
 
+type SupportedBackgroundType = 'solid' | 'mesh' | 'image' | 'Svg Gradient'
 
-const BackgroundPanel = () => {
+type BackgroundPanelProps = {
+  isOpen: boolean
+  onToggle: () => void
+}
+
+const BackgroundPanel = ({ isOpen, onToggle }: BackgroundPanelProps) => {
   const { setBackgroundType } = useBackgroundStore()
   const [selected, setSelected] = useState<string>('solid');
-   const [hex, setHex] = useState("#fff");
 
   const handleSelectionChange = (value: string) => {
     setSelected(value)
-    setBackgroundType(value as any)
+    if (value === 'solid' || value === 'mesh' || value === 'image' || value === 'Svg Gradient') {
+      setBackgroundType(value as SupportedBackgroundType)
+    }
   }
   return (
-    <div className='border border-border flex flex-col gap-2 rounded-xl  items-center overflow-hidden'>
-        <div className='flex gap-2 items-center justify-between w-full bg-sidebar h-14 px-4 border-b border-border'>  
+    <div className='border border-border flex flex-col rounded-xl items-center overflow-hidden'>
+        <div
+          className='flex gap-2 items-center justify-between w-full bg-sidebar h-14 px-4 border-b border-border cursor-pointer select-none'
+          onClick={onToggle}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onToggle()
+            }
+          }}
+        >
           <span className='text-sm font-medium'>Background</span>
-         <Select defaultValue={'solid'} onValueChange={(v) => handleSelectionChange(v as string)}>
-          <SelectTrigger  size={"sm"} className="w-[50%] border-none shadow-none ring-1 ring-primary/10 h-6">
+         <Select
+          defaultValue={'solid'}
+          onValueChange={(v) => handleSelectionChange(v as string)}
+         >
+          <SelectTrigger
+            size={"sm"}
+            className="w-[50%] border-none shadow-none ring-1 ring-primary/10 h-6"
+            onClick={(e) => e.stopPropagation()}
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectPopup>
@@ -55,7 +76,7 @@ const BackgroundPanel = () => {
          
         
 
-        <div className='w-full py-2 px-4 '>
+        <div className={`w-full px-4 transition-all duration-200 ${isOpen ? 'py-2' : 'max-h-0 py-0 overflow-hidden'}`}>
           {selected === 'solid' && <SolidColorPanel />}
           {selected === 'image' && <ImagePanel />}
           {selected === 'mesh' && <NewBackground />}

@@ -21,7 +21,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
-  TooltipPopup,
+  TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -551,7 +551,7 @@ function SidebarMenuButton({
       <TooltipTrigger
         render={buttonElement as React.ReactElement<Record<string, unknown>>}
       />
-      <TooltipPopup
+      <TooltipContent
         align="center"
         hidden={state !== "collapsed" || isMobile}
         side="right"

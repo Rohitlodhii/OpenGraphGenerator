@@ -1,26 +1,46 @@
 "use client"
 import LeftPanel from '../leftpanel/LeftPanel'
+import AppHeader from '../leftpanel/AppHeader'
 import RightPanel from '../rightpanel/RightPanel'
+import { Sidebar, SidebarProvider } from '../ui/sidebar'
 import Previewer from './Previewer'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 const Workspace = () => {
+  const isMobile = useIsMobile()
+
   return (
-    <div className='w-full h-screen flex flex-col md:flex-row gap-0'>
-      {/* Left Section - 20% on desktop, fixed navbar on mobile */}
-      <section className='sticky top-0 w-full md:w-[20%] h-16 md:h-full md:sticky md:top-0 bg-sidebar text-sidebar-foreground border-b md:border-b-0 md:border-r border-sidebar-border overflow-x-auto md:overflow-y-auto z-10 md:z-0'>
-        <LeftPanel/>
-      </section>
+    <SidebarProvider>
+      <div className='w-full h-screen flex flex-col md:flex-row gap-0'>
+        {isMobile && (
+          <section className='w-full h-16 p-2 bg-sidebar text-sidebar-foreground border-b border-sidebar-border shrink-0'>
+            <AppHeader showSidebarToggle />
+          </section>
+        )}
 
-      {/* Middle Section - 60% on desktop, full width on mobile */}
-      <section className='w-full md:w-[60%] h-1/2 md:h-full overflow-auto  text-foreground '>
-        <Previewer />
-      </section>
+        {/* Left Section - desktop only */}
+        <section className='hidden md:block w-[20%] h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border overflow-y-auto'>
+          <LeftPanel />
+        </section>
 
-      {/* Right Section - 20% on desktop, full width on mobile below */}
-      <section className='w-full md:w-[20%] h-1/2 md:h-full bg-popover text-popover-foreground border-t md:border-t-0 md:border-l border-popover-foreground/10 overflow-y-auto'>
-        <RightPanel/>
-      </section>
-    </div>
+        {/* Mobile left sidebar */}
+        {isMobile && (
+          <Sidebar side="left" variant="sidebar" collapsible="offcanvas">
+            <LeftPanel hideHeader />
+          </Sidebar>
+        )}
+
+        {/* Middle Section - 60% on desktop, full width on mobile */}
+        <section className='w-full md:w-[60%] h-1/2 md:h-full overflow-auto text-foreground'>
+          <Previewer />
+        </section>
+
+        {/* Right Section - 20% on desktop, full width on mobile below */}
+        <section className='w-full md:w-[20%] h-1/2 md:h-full bg-popover text-popover-foreground border-t md:border-t-0 md:border-l border-popover-foreground/10 overflow-y-auto'>
+          <RightPanel />
+        </section>
+      </div>
+    </SidebarProvider>
   )
 }
 

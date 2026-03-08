@@ -2,6 +2,7 @@
 
 import React, { useRef } from "react"
 import Draggable from "react-draggable"
+import { useCanvasStore } from "@/store/canvasstore"
 
 type StageProps = {
   width: number
@@ -12,6 +13,7 @@ type StageProps = {
 
 const Stage: React.FC<StageProps> = ({ width, height, zoom, children }) => {
   const dragRef = useRef<HTMLDivElement>(null)
+  const setSelectedObjectId = useCanvasStore((state) => state.setSelectedObjectId)
 
   return (
     <Draggable nodeRef={dragRef} defaultPosition={{ x: 0, y: 0 }} cancel=".canvas-object">
@@ -28,6 +30,7 @@ const Stage: React.FC<StageProps> = ({ width, height, zoom, children }) => {
               width,
               height,
             }}
+            onMouseDown={() => setSelectedObjectId(null)}
           >
             {children}
           </div>
@@ -38,4 +41,3 @@ const Stage: React.FC<StageProps> = ({ width, height, zoom, children }) => {
 }
 
 export default Stage
-
