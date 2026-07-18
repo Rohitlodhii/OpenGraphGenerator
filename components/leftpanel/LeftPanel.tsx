@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import {
+  Grid2x2,
   ImageIcon,
   LayoutTemplate,
   Palette,
@@ -13,15 +14,17 @@ import TemplateList from "./TemplateList"
 import { DimensionControls } from "../rightpanel/DimensionControls"
 import BackgroundPanel from "../rightpanel/BackgroundPanel"
 import ShapesPanel from "../rightpanel/ShapesPanel"
+import PatternsPanel from "../rightpanel/PatternsPanel"
 import TextAddingPanel from "../rightpanel/TextAddingPanel"
 import ImageAddingPanel from "../rightpanel/ImageAddingPanel"
 
-type LeftTab = "templates" | "size" | "background" | "shapes" | "text" | "images"
+type LeftTab = "templates" | "size" | "background" | "patterns" | "shapes" | "text" | "images"
 
 const tabs: { id: LeftTab; label: string; icon: React.ElementType }[] = [
   { id: "templates", label: "Templates", icon: LayoutTemplate },
   { id: "size", label: "Size", icon: Proportions },
   { id: "background", label: "Background", icon: Palette },
+  { id: "patterns", label: "Patterns", icon: Grid2x2 },
   { id: "shapes", label: "Shapes", icon: Shapes },
   { id: "text", label: "Text", icon: Type },
   { id: "images", label: "Images", icon: ImageIcon },
@@ -31,6 +34,7 @@ const tabTitles: Record<LeftTab, string> = {
   templates: "Templates",
   size: "Size",
   background: "Background",
+  patterns: "Patterns",
   shapes: "Shapes",
   text: "Text",
   images: "Images",
@@ -74,6 +78,7 @@ const LeftPanel = () => {
         {activeTab === "templates" && <TemplateList />}
         {activeTab === "size" && <DimensionControls />}
         {activeTab === "background" && <BackgroundPanel chromeless />}
+        {activeTab === "patterns" && <PatternsPanel chromeless />}
         {activeTab === "shapes" && <ShapesPanel chromeless />}
         {activeTab === "text" && <TextAddingPanel chromeless />}
         {activeTab === "images" && <ImageAddingPanel chromeless />}

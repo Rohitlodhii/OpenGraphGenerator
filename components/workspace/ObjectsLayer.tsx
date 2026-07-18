@@ -3,6 +3,7 @@
 import React, { useMemo } from "react"
 import { useCanvasStore } from "@/store/canvasstore"
 import CanvasObjectRenderer from "./CanvasObjectRenderer"
+import PatternObjectRenderer from "./PatternObjectRenderer"
 
 type ObjectsLayerProps = {
   zoom: number
@@ -24,9 +25,18 @@ const ObjectsLayer: React.FC<ObjectsLayerProps> = ({ zoom }) => {
 
   return (
     <div className="absolute inset-0">
-      {orderedObjects.map((object, index) => (
-        <CanvasObjectRenderer key={object.id} object={object} zoom={zoom} order={index} />
-      ))}
+      {orderedObjects.map((object, index) => {
+        // Hidden layers (toggled in the layers panel) render nothing.
+        if (object.hidden) return null
+        if (object.type === "pattern") {
+          return (
+            <PatternObjectRenderer key={object.id} object={object} order={index} />
+          )
+        }
+        return (
+          <CanvasObjectRenderer key={object.id} object={object} zoom={zoom} order={index} />
+        )
+      })}
     </div>
   )
 }
