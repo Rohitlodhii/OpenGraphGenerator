@@ -5,6 +5,20 @@ import Draggable, { DraggableData, DraggableEvent } from "react-draggable"
 import { CanvasObject, useCanvasStore } from "@/store/canvasstore"
 import TextPreviewer from "../previewers/TextPreviewer"
 import ImageObjectPreviewer from "../previewers/ImageObjectPreviewer"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "../ui/context-menu"
+import {
+  ArrowUp,
+  ArrowUpToLine,
+  ArrowDown,
+  ArrowDownToLine,
+  Trash2,
+} from "lucide-react"
 
 type CanvasObjectRendererProps = {
   object: CanvasObject
@@ -15,6 +29,11 @@ type CanvasObjectRendererProps = {
 const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoom, order }) => {
   const nodeRef = useRef<HTMLDivElement>(null)
   const updateObject = useCanvasStore((state) => state.updateObject)
+  const removeObject = useCanvasStore((state) => state.removeObject)
+  const bringForward = useCanvasStore((state) => state.bringForward)
+  const sendBackward = useCanvasStore((state) => state.sendBackward)
+  const bringToFront = useCanvasStore((state) => state.bringToFront)
+  const sendToBack = useCanvasStore((state) => state.sendToBack)
   const selectedObjectId = useCanvasStore((state) => state.selectedObjectId)
   const setSelectedObjectId = useCanvasStore((state) => state.setSelectedObjectId)
   const [isResizing, setIsResizing] = useState(false)
@@ -211,38 +230,86 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
   }
 
   return (
-    <Draggable
-      nodeRef={nodeRef}
-      scale={zoom / 100}
-      position={{ x: object.x, y: object.y }}
-      onDrag={handleDrag}
-      disabled={isResizing || isTextEditing}
-    >
-      <div
-        ref={nodeRef}
-        className={`canvas-object absolute select-none ${isTextEditing ? "cursor-text" : "cursor-move"}`}
-        style={{
-          left: 0,
-          top: 0,
-          zIndex: object.zIndex ?? order + 1,
-          outline:
-            selectedObjectId === object.id ? "2px solid hsl(var(--primary))" : undefined,
-          outlineOffset: selectedObjectId === object.id ? 2 : 0,
-        }}
-        onMouseDown={(event) => {
-          event.stopPropagation()
-          setSelectedObjectId(object.id)
-        }}
+    <ContextMenu>
+      <Draggable
+        nodeRef={nodeRef}
+        scale={zoom / 100}
+        position={{ x: object.x, y: object.y }}
+        onDrag={handleDrag}
+        disabled={isResizing || isTextEditing}
       >
-        {renderObject()}
-        {selectedObjectId === object.id && !isTextEditing && (
-          <div
-            className="absolute -right-2 -bottom-2 h-4 w-4 rounded-full border border-border bg-card cursor-se-resize"
-            onMouseDown={handleResizeMouseDown}
-          />
-        )}
-      </div>
-    </Draggable>
+        <ContextMenuTrigger
+          ref={nodeRef}
+          className={`canvas-object absolute select-none ${isTextEditing ? "cursor-text" : "cursor-move"}`}
+          style={{
+            left: 0,
+            top: 0,
+            zIndex: object.zIndex ?? order + 1,
+            outline:
+              selectedObjectId === object.id ? "2px solid hsl(var(--primary))" : undefined,
+            outlineOffset: selectedObjectId === object.id ? 2 : 0,
+          }}
+          onMouseDown={(event) => {
+            event.stopPropagation()
+            setSelectedObjectId(object.id)
+          }}
+        >
+          {renderObject()}
+          {selectedObjectId === object.id && !isTextEditing && (
+            <div
+              className="absolute -right-2 -bottom-2 h-4 w-4 rounded-full border border-border bg-card cursor-se-resize"
+              onMouseDown={handleResizeMouseDown}
+            />
+          )}
+        </ContextMenuTrigger>
+      </Draggable>
+      <ContextMenuContent>
+        <ContextMenuItem
+          onClick={() => {
+            setSelectedObjectId(object.id)
+            bringToFront(object.id)
+          }}
+        >
+          <ArrowUpToLine />
+          Bring to front
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => {
+            setSelectedObjectId(object.id)
+            bringForward(object.id)
+          }}
+        >
+          <ArrowUp />
+          Bring forward
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => {
+            setSelectedObjectId(object.id)
+            sendBackward(object.id)
+          }}
+        >
+          <ArrowDown />
+          Send backward
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => {
+            setSelectedObjectId(object.id)
+            sendToBack(object.id)
+          }}
+        >
+          <ArrowDownToLine />
+          Send to back
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          variant="destructive"
+          onClick={() => removeObject(object.id)}
+        >
+          <Trash2 />
+          Remove
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   )
 }
 
