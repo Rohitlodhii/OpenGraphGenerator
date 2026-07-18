@@ -2,7 +2,6 @@
 import React, { useState } from 'react'
 import { ImageIcon, Palette, Shapes, Type } from 'lucide-react'
 import BackgroundPanel from './BackgroundPanel'
-import DimensionSelector from './DimensionSelector'
 import ShapesPanel from './ShapesPanel'
 import TextAddingPanel from './TextAddingPanel'
 import ImageAddingPanel from './ImageAddingPanel'
@@ -30,8 +29,6 @@ const RightPanel = () => {
     <div className="flex h-full w-full">
       {/* Options sidebar */}
       <div className="hide-scrollbar flex-1 min-w-0 h-full overflow-y-auto flex flex-col gap-3 p-3">
-        <DimensionSelector />
-
         <div className="text-sm font-semibold text-foreground">
           {tabTitles[activeTab]}
         </div>
