@@ -2,6 +2,8 @@
 
 import React from "react"
 import { CanvasObject } from "@/store/canvasstore"
+import { loadFontByFamily } from "@/lib/font-loader"
+import { familyNameFromValue } from "@/lib/fonts"
 
 type TextPreviewerProps = {
   object: CanvasObject
@@ -23,6 +25,13 @@ const TextPreviewer: React.FC<TextPreviewerProps> = ({
   onBlur,
 }) => {
   const normalizedOpacity = Math.max(0, Math.min(100, object.fontOpacity ?? 100)) / 100
+
+  // Ensure the object's font face is loaded (covers text restored from saved
+  // templates, not just fonts chosen via the picker). Cached after first load.
+  React.useEffect(() => {
+    const family = familyNameFromValue(object.fontFamily)
+    if (family) loadFontByFamily(family)
+  }, [object.fontFamily])
 
   const textStyle: React.CSSProperties = {
     ...style,

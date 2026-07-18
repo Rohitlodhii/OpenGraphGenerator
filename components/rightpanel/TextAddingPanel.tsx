@@ -24,21 +24,14 @@ import { CanvasTextAlign, useCanvasStore } from "@/store/canvasstore"
 import ColorPopup from "../helpers/colorpopup"
 import { ToggleGroup } from "../ui/toggle-group"
 import { Toggle } from "../ui/toggle"
+import FontPicker from "./FontPicker"
+import { familyNameFromValue } from "@/lib/fonts"
 
 type TextAddingPanelProps = {
   isOpen?: boolean
   onToggle?: () => void
   chromeless?: boolean
 }
-
-const fontFamilyOptions = [
-  "Poppins, sans-serif",
-  "Inter, sans-serif",
-  "Georgia, serif",
-  "'Times New Roman', serif",
-  "'Courier New', monospace",
-  "Verdana, sans-serif",
-]
 
 type TextFormattingValue = "bold" | "italic" | "underline"
 
@@ -380,17 +373,13 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
 
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-muted-foreground">Font Family</span>
-                <select
-                  value={selectedTextObject.fontFamily ?? fontFamilyOptions[0]}
-                  onChange={(event) => updateObject(selectedTextObject.id, { fontFamily: event.target.value })}
-                  className="h-10 rounded-md border border-input bg-background px-3 text-sm outline-none"
-                >
-                  {fontFamilyOptions.map((family) => (
-                    <option key={family} value={family}>
-                      {family}
-                    </option>
-                  ))}
-                </select>
+                <FontPicker
+                  value={selectedTextObject.fontFamily}
+                  selectedFamily={familyNameFromValue(selectedTextObject.fontFamily) ?? "Poppins"}
+                  onSelect={(fontFamilyValue) =>
+                    updateObject(selectedTextObject.id, { fontFamily: fontFamilyValue })
+                  }
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
