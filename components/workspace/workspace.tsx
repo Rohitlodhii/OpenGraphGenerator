@@ -29,7 +29,7 @@ const Workspace = () => {
           )}
 
           {/* Middle Section - fills remaining width on desktop, full width on mobile */}
-          <section className='relative w-full md:w-[74%] lg:w-[76%] h-full text-foreground'>
+          <section className='relative w-full md:w-[74%] lg:w-[76%] h-full text-foreground overflow-hidden'>
             <div className='h-full w-full overflow-auto'>
               <Previewer />
             </div>

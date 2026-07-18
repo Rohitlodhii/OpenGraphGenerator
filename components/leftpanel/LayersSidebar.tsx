@@ -107,7 +107,7 @@ const LayersSidebar = () => {
   return (
     <aside
       aria-hidden={!open}
-      className={`absolute inset-y-0 right-0 z-30 flex h-full w-72 flex-col border-l border-border bg-sidebar text-sidebar-foreground shadow-xl transition-transform duration-200 ease-in-out ${
+      className={`absolute inset-y-0 right-0 z-30 flex h-full w-[26vw] lg:w-[24vw] min-w-[220px] max-w-[360px] flex-col border-l border-border bg-sidebar text-sidebar-foreground shadow-xl transition-transform duration-200 ease-in-out ${
         open ? "translate-x-0" : "translate-x-full"
       }`}
     >
