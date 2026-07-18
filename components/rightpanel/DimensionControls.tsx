@@ -39,14 +39,16 @@ export const DimensionControls = () => {
             placeholder="Width"
             value={w}
             onChange={(e) => setW(e.target.value)}
+            className="h-10 text-sm"
           />
           <Input
             type="number"
             placeholder="Height"
             value={h}
             onChange={(e) => setH(e.target.value)}
+            className="h-10 text-sm"
           />
-          <Button size="sm" onClick={apply}>
+          <Button className="h-10 px-4" onClick={apply}>
             Apply
           </Button>
         </div>
@@ -64,12 +66,12 @@ export const DimensionControls = () => {
                 onClick={() =>
                   setDimensions({ width: item.width, height: item.height })
                 }
-                className={`p-3 rounded-xl flex gap-2 items-center justify-center cursor-pointer transition
+                className={`p-4 rounded-xl flex gap-2 items-center justify-center cursor-pointer transition
                   ${isActive ? "border-primary bg-muted" : "hover:bg-muted/50"}
                 `}
               >
-                <item.icon className="h-4 w-4" />
-                <span className="text-xs">
+                <item.icon className="h-5 w-5" />
+                <span className="text-sm">
                   {item.width} × {item.height}
                 </span>
               </Card>

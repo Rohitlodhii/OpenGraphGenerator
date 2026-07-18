@@ -42,7 +42,7 @@ const LeftPanel = () => {
   return (
     <div className="flex h-full w-full">
       {/* Icon rail (left edge) */}
-      <div className="w-14 shrink-0 h-full border-r border-border bg-sidebar flex flex-col py-2">
+      <div className="w-20 shrink-0 h-full border-r border-border bg-sidebar flex flex-col py-3 gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
@@ -52,22 +52,22 @@ const LeftPanel = () => {
               type="button"
               onClick={() => setActiveTab(tab.id)}
               aria-pressed={isActive}
-              className={`flex flex-col items-center gap-1 py-3 mx-1 rounded-lg transition-colors ${
+              className={`flex flex-col items-center gap-1.5 py-3.5 mx-2 rounded-xl transition-colors ${
                 isActive
                   ? "bg-accent text-accent-foreground"
                   : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
               }`}
             >
-              <Icon className="h-5 w-5" />
-              <span className="text-[10px] leading-none">{tab.label}</span>
+              <Icon className="h-6 w-6" />
+              <span className="text-[11px] leading-none font-medium">{tab.label}</span>
             </button>
           )
         })}
       </div>
 
       {/* Options sidebar */}
-      <div className="hide-scrollbar flex-1 min-w-0 h-full overflow-y-auto flex flex-col gap-3 p-3">
-        <div className="text-sm font-semibold text-foreground">
+      <div className="hide-scrollbar flex-1 min-w-0 h-full overflow-y-auto flex flex-col gap-4 p-4">
+        <div className="text-base font-semibold text-foreground">
           {tabTitles[activeTab]}
         </div>
 

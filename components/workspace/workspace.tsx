@@ -16,7 +16,7 @@ const Workspace = () => {
 
         <div className='flex-1 min-h-0 w-full flex flex-col md:flex-row gap-0'>
           {/* Left Section - desktop only */}
-          <section className='hidden md:block w-[20%] h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border overflow-hidden'>
+          <section className='hidden md:block w-[26%] lg:w-[24%] h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border overflow-hidden'>
             <LeftPanel />
           </section>
 
@@ -28,7 +28,7 @@ const Workspace = () => {
           )}
 
           {/* Middle Section - fills remaining width on desktop, full width on mobile */}
-          <section className='w-full md:w-[80%] h-full overflow-auto text-foreground'>
+          <section className='w-full md:w-[74%] lg:w-[76%] h-full overflow-auto text-foreground'>
             <Previewer />
           </section>
         </div>

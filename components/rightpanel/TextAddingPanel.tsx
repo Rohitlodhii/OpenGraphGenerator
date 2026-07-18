@@ -143,7 +143,7 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
     })
   }
 
-  const compactButton = "h-6 rounded-sm px-2 text-[11px]"
+  const compactButton = "h-8 rounded-md px-3 text-xs"
 
   return (
     <div
@@ -192,11 +192,11 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
                 {textObjects.map((item) => (
                   <div
                     key={item.id}
-                    className={`h-8 border rounded-md px-2 flex items-center justify-between gap-2 ${selectedObjectId === item.id ? "border-primary" : "border-border"
+                    className={`h-10 border rounded-md px-3 flex items-center justify-between gap-2 ${selectedObjectId === item.id ? "border-primary" : "border-border"
                       }`}
                   >
                     <button
-                      className="text-xs text-left truncate flex-1"
+                      className="text-sm text-left truncate flex-1"
                       onClick={() => setSelectedObjectId(item.id)}
                     >
                       {(item.content ?? "Text").slice(0, 22)}
@@ -206,7 +206,7 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
                       onClick={() => removeObject(item.id)}
                       aria-label="Delete text"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 ))}
@@ -379,11 +379,11 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
               </div>
 
               <div className="flex flex-col gap-1">
-                <span className="text-[11px] font-medium text-muted-foreground">Font Family</span>
+                <span className="text-xs font-medium text-muted-foreground">Font Family</span>
                 <select
                   value={selectedTextObject.fontFamily ?? fontFamilyOptions[0]}
                   onChange={(event) => updateObject(selectedTextObject.id, { fontFamily: event.target.value })}
-                  className="h-8 rounded-md border border-input bg-background px-2 text-xs outline-none"
+                  className="h-10 rounded-md border border-input bg-background px-3 text-sm outline-none"
                 >
                   {fontFamilyOptions.map((family) => (
                     <option key={family} value={family}>
@@ -394,22 +394,22 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <div className="flex gap-2 h-6 border border-border rounded-md px-2 items-center">
-                  <span className="text-xs">X</span>
+                <div className="flex gap-2 h-10 border border-border rounded-md px-3 items-center">
+                  <span className="text-sm">X</span>
                   <input
                     type="number"
                     value={Math.round(selectedTextObject.x)}
                     onChange={(event) => updateNumberField("x", event.target.value)}
-                    className="h-6 border-0 ring-0 outline-0 text-xs w-full bg-transparent"
+                    className="h-full border-0 ring-0 outline-0 text-sm w-full bg-transparent"
                   />
                 </div>
-                <div className="flex gap-2 h-6 border border-border rounded-md px-2 items-center">
-                  <span className="text-xs">Y</span>
+                <div className="flex gap-2 h-10 border border-border rounded-md px-3 items-center">
+                  <span className="text-sm">Y</span>
                   <input
                     type="number"
                     value={Math.round(selectedTextObject.y)}
                     onChange={(event) => updateNumberField("y", event.target.value)}
-                    className="h-6 border-0 ring-0 outline-0 text-xs w-full bg-transparent"
+                    className="h-full border-0 ring-0 outline-0 text-sm w-full bg-transparent"
                   />
                 </div>
               </div>
@@ -471,9 +471,9 @@ function SliderWithInput({
   }, [inputValues, maxValue, minValue, onChange, sliderValue, validateAndUpdateValue])
 
   return (
-    <div className="flex items-center gap-2 ring-1 ring-primary/10 px-2 rounded-lg bg-secondary">
+    <div className="flex items-center gap-2 ring-1 ring-primary/10 px-2 py-1 rounded-lg bg-secondary">
       <span className="text-muted-foreground text-xs">
-        <ChevronsLeftRight className="h-4 w-6" />
+        <ChevronsLeftRight className="h-5 w-6" />
       </span>
       <Slider
         aria-label={label}
@@ -487,7 +487,7 @@ function SliderWithInput({
       <div className="flex items-center justify-center">
         <Input
           aria-label={`Enter ${label}`}
-          className="h-8 w-8 px-0 py-1 outline-none border-none shadow-none ring-0 focus-visible:ring-0"
+          className="h-9 w-10 px-0 py-1 text-sm text-center outline-none border-none shadow-none ring-0 focus-visible:ring-0"
           inputMode="decimal"
           onBlur={commitInputValue}
           onChange={(e) => handleInputChange(e, 0)}
