@@ -168,7 +168,7 @@ const ShapesPanel = ({ isOpen, onToggle }: ShapesPanelProps) => {
                 key={shape.value}
                 variant={activeShape === shape.value ? "default" : "secondary"}
                 size="sm"
-                className={`justify-start ${compactButton}`}
+                className="h-8 justify-start rounded-md px-2 text-xs"
                 onClick={() => setActiveShape(shape.value)}
               >
                 {shape.icon}
@@ -260,24 +260,24 @@ const ShapesPanel = ({ isOpen, onToggle }: ShapesPanelProps) => {
                       <span className="mt-1 text-[11px] font-medium  tracking-wide text-muted-foreground">
                         Positioning
                       </span>
-                      <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                        <div className="flex items-center gap-2  w-full pr-2">
-                          <div className="flex w-1/2 gap-2 h-6 border border-border rounded-md px-2 ">
-                              <span>X</span>
-                              <input 
-                              type="number"
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex h-8 items-center gap-2 rounded-md border border-border px-2">
+                          <span className="text-xs font-medium text-muted-foreground">X</span>
+                          <input
+                            type="number"
                             value={Math.round(shape.x)}
                             onChange={(event) => updateShapeNumber(shape, "x", event.target.value)}
-                            className={"h-6 border-0 ring-0 outline-0"}  />
-                          </div>
-                          <div className="flex gap-2 w-1/2 h-6 border border-border rounded-md px-2 ">
-                              <span>Y</span>
-                              <input 
-                              type="number"
+                            className="h-full w-full min-w-0 border-0 bg-transparent text-xs outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          />
+                        </div>
+                        <div className="flex h-8 items-center gap-2 rounded-md border border-border px-2">
+                          <span className="text-xs font-medium text-muted-foreground">Y</span>
+                          <input
+                            type="number"
                             value={Math.round(shape.y)}
                             onChange={(event) => updateShapeNumber(shape, "y", event.target.value)}
-                            className={"h-6 border-0 ring-0 outline-0"}  />
-                          </div>
+                            className="h-full w-full min-w-0 border-0 bg-transparent text-xs outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          />
                         </div>
                       </div>
 
