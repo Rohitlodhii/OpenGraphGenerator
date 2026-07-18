@@ -246,7 +246,7 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
             top: 0,
             zIndex: object.zIndex ?? order + 1,
             outline:
-              selectedObjectId === object.id ? "2px solid hsl(var(--primary))" : undefined,
+              selectedObjectId === object.id ? "2px solid var(--primary)" : undefined,
             outlineOffset: selectedObjectId === object.id ? 2 : 0,
           }}
           onMouseDown={(event) => {
@@ -257,7 +257,7 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
           {renderObject()}
           {selectedObjectId === object.id && !isTextEditing && (
             <div
-              className="absolute -right-2 -bottom-2 h-4 w-4 rounded-full border border-border bg-card cursor-se-resize"
+              className="absolute -right-1.5 -bottom-1.5 h-3 w-3 rounded-full border-2 border-background bg-primary shadow-sm cursor-se-resize"
               onMouseDown={handleResizeMouseDown}
             />
           )}
