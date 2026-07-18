@@ -137,8 +137,9 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
   }
 
   const compactButton = "h-8 rounded-md px-3 text-xs"
-  const compactIconButton = "h-8 w-8 rounded-md p-0"
+  const compactIconButton = "h-8 w-8 rounded-md p-0 shrink-0"
   const compactInput = "h-8 w-20 rounded-md px-2 text-sm focus-visible:ring-0 focus-visible:border-input"
+  const sizeInput = "h-8 w-full min-w-0 flex-1 rounded-md px-2 text-xs focus-visible:ring-0 focus-visible:border-input"
 
   return (
     <div
@@ -161,7 +162,7 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
             }
           }}
         >
-          <span className="text-sm font-medium">Shapes</span>
+          <span className="text-xs font-base">Shapesss</span>
           <Layers className="h-4 w-4 text-muted-foreground" />
         </div>
       )}
@@ -182,7 +183,7 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                 key={shape.value}
                 variant={activeShape === shape.value ? "default" : "secondary"}
                 size="sm"
-                className="h-10 justify-start rounded-md px-3 text-sm"
+                className="h-8 justify-start rounded-md px-3 text-xs"
                 onClick={() => setActiveShape(shape.value)}
               >
                 {shape.icon}
@@ -275,22 +276,22 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                         Positioning
                       </span>
                       <div className="grid grid-cols-2 gap-2">
-                        <div className="flex h-10 items-center gap-2 rounded-md border border-border px-2">
-                          <span className="text-sm font-medium text-muted-foreground">X</span>
+                        <div className="flex h-8 items-center gap-2 rounded-md border border-border px-2">
+                          <span className="text-xs font-medium text-muted-foreground">X</span>
                           <input
                             type="number"
                             value={Math.round(shape.x)}
                             onChange={(event) => updateShapeNumber(shape, "x", event.target.value)}
-                            className="h-full w-full min-w-0 border-0 bg-transparent text-sm outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            className="h-full w-full min-w-0 border-0 bg-transparent text-xs outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                           />
                         </div>
-                        <div className="flex h-10 items-center gap-2 rounded-md border border-border px-2">
-                          <span className="text-sm font-medium text-muted-foreground">Y</span>
+                        <div className="flex h-8 items-center gap-2 rounded-md border border-border px-2">
+                          <span className="text-xs font-medium text-muted-foreground">Y</span>
                           <input
                             type="number"
                             value={Math.round(shape.y)}
                             onChange={(event) => updateShapeNumber(shape, "y", event.target.value)}
-                            className="h-full w-full min-w-0 border-0 bg-transparent text-sm outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            className="h-full w-full min-w-0 border-0 bg-transparent text-xs outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                           />
                         </div>
                       </div>
@@ -298,77 +299,65 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                       <span className="mt-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                         Size
                       </span>
-                      <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                        <div className="min-w-max flex items-center gap-2">
-                          <Button variant="secondary" size="sm" className={compactIconButton} onClick={() => updateShapeSize(shape, "dec")}>
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <Button variant="secondary" size="sm" className={compactIconButton} onClick={() => updateShapeSize(shape, "inc")}>
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                          <span className="text-xs text-muted-foreground w-4 text-center">W</span>
-                          <Input
-                            type="number"
-                            value={Math.round(shape.width ?? 0)}
-                            onChange={(event) => updateShapeNumber(shape, "width", event.target.value)}
-                            className={compactInput}
-                          />
-                          <span className="text-xs text-muted-foreground w-4 text-center">H</span>
-                          <Input
-                            type="number"
-                            value={Math.round(shape.height ?? 0)}
-                            onChange={(event) => updateShapeNumber(shape, "height", event.target.value)}
-                            className={compactInput}
-                          />
-                        </div>
+                      <div className="flex items-center gap-1.5">
+                        <Button variant="secondary" size="sm" className={compactIconButton} onClick={() => updateShapeSize(shape, "dec")}>
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <Button variant="secondary" size="sm" className={compactIconButton} onClick={() => updateShapeSize(shape, "inc")}>
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                        <span className="text-xs text-muted-foreground shrink-0">W</span>
+                        <Input
+                          type="number"
+                          value={Math.round(shape.width ?? 0)}
+                          onChange={(event) => updateShapeNumber(shape, "width", event.target.value)}
+                          className={sizeInput}
+                        />
+                        <span className="text-xs text-muted-foreground shrink-0">H</span>
+                        <Input
+                          type="number"
+                          value={Math.round(shape.height ?? 0)}
+                          onChange={(event) => updateShapeNumber(shape, "height", event.target.value)}
+                          className={sizeInput}
+                        />
                       </div>
 
-                      <div className="mt-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                        <div className="min-w-max flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-md border border-input bg-secondary flex items-center justify-center">
-                            <RotateCw className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                          <Input
-                            type="number"
-                            value={Math.round(shape.rotation ?? 0)}
-                            onChange={(event) => {
-                              const parsed = Number(event.target.value)
-                              if (Number.isNaN(parsed)) return
-                              updateObject(shape.id, { rotation: parsed })
-                            }}
-                            className={`${compactInput} w-20`}
-                          />
-                          <span className="text-xs text-muted-foreground">deg</span>
+                      <div className="mt-1 flex items-center gap-2">
+                        <div className="h-8 w-8 shrink-0 rounded-md border border-input bg-secondary flex items-center justify-center">
+                          <RotateCw className="h-4 w-4 text-muted-foreground" />
                         </div>
+                        <Input
+                          type="number"
+                          value={Math.round(shape.rotation ?? 0)}
+                          onChange={(event) => {
+                            const parsed = Number(event.target.value)
+                            if (Number.isNaN(parsed)) return
+                            updateObject(shape.id, { rotation: parsed })
+                          }}
+                          className={`${sizeInput} flex-1`}
+                        />
+                        <span className="text-xs text-muted-foreground shrink-0">deg</span>
                       </div>
 
-                      <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                        <div className="min-w-max">
-                          <SliderWithInput
-                            key={`shape-opacity-${shape.id}`}
-                            defaultValue={[shape.shapeOpacity ?? 100]}
-                            initialValue={[shape.shapeOpacity ?? 100]}
-                            label="Opacity"
-                            maxValue={100}
-                            minValue={0}
-                            onChange={(vals) => updateObject(shape.id, { shapeOpacity: vals[0] })}
-                          />
-                        </div>
-                      </div>
+                      <SliderWithInput
+                        key={`shape-opacity-${shape.id}`}
+                        defaultValue={[shape.shapeOpacity ?? 100]}
+                        initialValue={[shape.shapeOpacity ?? 100]}
+                        label="Opacity"
+                        maxValue={100}
+                        minValue={0}
+                        onChange={(vals) => updateObject(shape.id, { shapeOpacity: vals[0] })}
+                      />
 
-                      <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                        <div className="min-w-max">
-                          <SliderWithInput
-                            key={`shape-blur-${shape.id}`}
-                            defaultValue={[shape.blur ?? 0]}
-                            initialValue={[shape.blur ?? 0]}
-                            label="Blur"
-                            maxValue={40}
-                            minValue={0}
-                            onChange={(vals) => updateObject(shape.id, { blur: vals[0] })}
-                          />
-                        </div>
-                      </div>
+                      <SliderWithInput
+                        key={`shape-blur-${shape.id}`}
+                        defaultValue={[shape.blur ?? 0]}
+                        initialValue={[shape.blur ?? 0]}
+                        label="Blur"
+                        maxValue={40}
+                        minValue={0}
+                        onChange={(vals) => updateObject(shape.id, { blur: vals[0] })}
+                      />
 
                       <span className="mt-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                         Stroke
@@ -396,23 +385,19 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                             label="[Stroke]"
                             className="bg-secondary"
                           />
-                          <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                            <div className="min-w-max">
-                              <SliderWithInput
-                                key={`shape-stroke-width-${shape.id}`}
-                                defaultValue={[shape.strokeWidth ?? 2]}
-                                initialValue={[shape.strokeWidth ?? 2]}
-                                label="Stroke"
-                                maxValue={50}
-                                minValue={1}
-                                onChange={(vals) =>
-                                  updateObject(shape.id, {
-                                    strokeWidth: vals[0],
-                                  })
-                                }
-                              />
-                            </div>
-                          </div>
+                          <SliderWithInput
+                            key={`shape-stroke-width-${shape.id}`}
+                            defaultValue={[shape.strokeWidth ?? 2]}
+                            initialValue={[shape.strokeWidth ?? 2]}
+                            label="Stroke"
+                            maxValue={50}
+                            minValue={1}
+                            onChange={(vals) =>
+                              updateObject(shape.id, {
+                                strokeWidth: vals[0],
+                              })
+                            }
+                          />
                           <Button
                             variant="secondary"
                             size="sm"
@@ -455,19 +440,15 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                             label="[Shadow]"
                             className="bg-secondary"
                           />
-                          <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                            <div className="min-w-max">
-                              <SliderWithInput
-                                key={`shape-shadow-${shape.id}`}
-                                defaultValue={[shape.shapeShadow ?? 0]}
-                                initialValue={[shape.shapeShadow ?? 0]}
-                                label="Shadow"
-                                maxValue={100}
-                                minValue={0}
-                                onChange={(vals) => updateObject(shape.id, { shapeShadow: vals[0] })}
-                              />
-                            </div>
-                          </div>
+                          <SliderWithInput
+                            key={`shape-shadow-${shape.id}`}
+                            defaultValue={[shape.shapeShadow ?? 0]}
+                            initialValue={[shape.shapeShadow ?? 0]}
+                            label="Shadow"
+                            maxValue={100}
+                            minValue={0}
+                            onChange={(vals) => updateObject(shape.id, { shapeShadow: vals[0] })}
+                          />
                           <Button
                             variant="secondary"
                             size="sm"
@@ -546,9 +527,9 @@ function SliderWithInput({
   }, [inputValues, maxValue, minValue, onChange, sliderValue, validateAndUpdateValue])
 
   return (
-    <div className="flex items-center gap-2 ring-1 ring-primary/10 px-2 py-1 rounded-lg bg-secondary">
+    <div className="flex items-center gap-2 ring-1 ring-primary/10 px-2 py-0.5 rounded-lg bg-secondary">
       <span className="text-muted-foreground text-xs">
-        <ChevronsLeftRight className="h-5 w-6" />
+        <ChevronsLeftRight className="h-4 w-5" />
       </span>
       <Slider
         aria-label={label}
@@ -562,7 +543,7 @@ function SliderWithInput({
       <div className="flex items-center justify-center">
         <Input
           aria-label={`Enter ${label}`}
-          className="h-9 w-10 px-0 py-1 text-sm text-center outline-none border-none shadow-none ring-0 focus-visible:ring-0"
+          className="h-7 w-10 px-0 py-0 text-sm text-center outline-none border-none shadow-none ring-0 focus-visible:ring-0"
           inputMode="decimal"
           onBlur={commitInputValue}
           onChange={(e) => handleInputChange(e, 0)}
