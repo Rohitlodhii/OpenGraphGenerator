@@ -1,7 +1,6 @@
 "use client"
 import LeftPanel from '../leftpanel/LeftPanel'
 import Navbar from '../leftpanel/Navbar'
-import RightPanel from '../rightpanel/RightPanel'
 import { Sidebar, SidebarProvider } from '../ui/sidebar'
 import Previewer from './Previewer'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -28,14 +27,9 @@ const Workspace = () => {
             </Sidebar>
           )}
 
-          {/* Middle Section - 60% on desktop, full width on mobile */}
-          <section className='w-full md:w-[60%] h-1/2 md:h-full overflow-auto text-foreground'>
+          {/* Middle Section - fills remaining width on desktop, full width on mobile */}
+          <section className='w-full md:w-[80%] h-full overflow-auto text-foreground'>
             <Previewer />
-          </section>
-
-          {/* Right Section - 20% on desktop, full width on mobile below */}
-          <section className='w-full md:w-[20%] h-1/2 md:h-full bg-popover text-popover-foreground border-t md:border-t-0 md:border-l border-popover-foreground/10 overflow-hidden'>
-            <RightPanel />
           </section>
         </div>
       </div>
