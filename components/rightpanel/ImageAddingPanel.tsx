@@ -7,8 +7,9 @@ import { Input } from "../ui/input"
 import { useCanvasStore } from "@/store/canvasstore"
 
 type ImageAddingPanelProps = {
-  isOpen: boolean
-  onToggle: () => void
+  isOpen?: boolean
+  onToggle?: () => void
+  chromeless?: boolean
 }
 
 const createId = () => {
@@ -18,7 +19,8 @@ const createId = () => {
   return `image-${Date.now()}-${Math.floor(Math.random() * 100000)}`
 }
 
-const ImageAddingPanel = ({ isOpen, onToggle }: ImageAddingPanelProps) => {
+const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingPanelProps) => {
+  const expanded = chromeless ? true : isOpen
   const { objects, selectedObjectId, addObject, updateObject, removeObject, setSelectedObjectId } =
     useCanvasStore()
 
@@ -65,27 +67,39 @@ const ImageAddingPanel = ({ isOpen, onToggle }: ImageAddingPanelProps) => {
   const compactInput = "h-6 w-16 rounded-sm px-2 text-xs focus-visible:ring-0 focus-visible:border-input"
 
   return (
-    <div className="border border-border flex flex-col rounded-xl items-center overflow-hidden">
-      <div
-        className="flex gap-2 items-center justify-between w-full bg-sidebar h-14 px-4 border-b border-border cursor-pointer select-none"
-        onClick={onToggle}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault()
-            onToggle()
-          }
-        }}
-      >
-        <span className="text-sm font-medium">Images</span>
-        <ImagePlus className="h-4 w-4 text-muted-foreground" />
-      </div>
+    <div
+      className={
+        chromeless
+          ? "flex w-full flex-col"
+          : "border border-border flex flex-col rounded-xl items-center overflow-hidden"
+      }
+    >
+      {!chromeless && (
+        <div
+          className="flex gap-2 items-center justify-between w-full bg-sidebar h-14 px-4 border-b border-border cursor-pointer select-none"
+          onClick={onToggle}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault()
+              onToggle?.()
+            }
+          }}
+        >
+          <span className="text-sm font-medium">Images</span>
+          <ImagePlus className="h-4 w-4 text-muted-foreground" />
+        </div>
+      )}
 
       <div
-        className={`w-full px-4 transition-all duration-200 ${
-          isOpen ? "py-3" : "max-h-0 py-0 overflow-hidden"
-        }`}
+        className={
+          chromeless
+            ? "w-full"
+            : `w-full px-4 transition-all duration-200 ${
+                expanded ? "py-3" : "max-h-0 py-0 overflow-hidden"
+              }`
+        }
       >
         <div className="w-full flex flex-col gap-3">
           <label className="flex items-center justify-center gap-2 px-3 py-2 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition">

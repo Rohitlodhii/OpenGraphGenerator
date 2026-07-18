@@ -26,8 +26,9 @@ import { ToggleGroup } from "../ui/toggle-group"
 import { Toggle } from "../ui/toggle"
 
 type TextAddingPanelProps = {
-  isOpen: boolean
-  onToggle: () => void
+  isOpen?: boolean
+  onToggle?: () => void
+  chromeless?: boolean
 }
 
 const fontFamilyOptions = [
@@ -48,7 +49,8 @@ const createId = () => {
   return `text-${Date.now()}-${Math.floor(Math.random() * 100000)}`
 }
 
-const TextAddingPanel = ({ isOpen, onToggle }: TextAddingPanelProps) => {
+const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPanelProps) => {
+  const expanded = chromeless ? true : isOpen
   const {
     objects,
     selectedObjectId,
@@ -144,26 +146,38 @@ const TextAddingPanel = ({ isOpen, onToggle }: TextAddingPanelProps) => {
   const compactButton = "flex items-center justify-center gap-2 px-3 py-2 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition"
 
   return (
-    <div className="border border-border  flex flex-col rounded-xl items-center overflow-hidden">
-      <div
-        className="flex gap-2 items-center justify-between w-full bg-sidebar h-14 px-4 border-b border-border cursor-pointer select-none"
-        onClick={onToggle}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault()
-            onToggle()
-          }
-        }}
-      >
-        <span className="text-sm font-medium">Text</span>
-        <Type className="h-4 w-4 text-muted-foreground" />
-      </div>
+    <div
+      className={
+        chromeless
+          ? "flex w-full flex-col"
+          : "border border-border  flex flex-col rounded-xl items-center overflow-hidden"
+      }
+    >
+      {!chromeless && (
+        <div
+          className="flex gap-2 items-center justify-between w-full bg-sidebar h-14 px-4 border-b border-border cursor-pointer select-none"
+          onClick={onToggle}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault()
+              onToggle?.()
+            }
+          }}
+        >
+          <span className="text-sm font-medium">Text</span>
+          <Type className="h-4 w-4 text-muted-foreground" />
+        </div>
+      )}
 
       <div
-        className={`w-full px-4 transition-all duration-200 ${isOpen ? "py-3" : "max-h-0 py-0 overflow-hidden"
-          }`}
+        className={
+          chromeless
+            ? "w-full"
+            : `w-full px-4 transition-all duration-200 ${expanded ? "py-3" : "max-h-0 py-0 overflow-hidden"
+              }`
+        }
       >
         <div className="w-full flex flex-col gap-3">
           <Button size="sm" variant="secondary" className={`w-full ${compactButton}`} onClick={handleAddText}>

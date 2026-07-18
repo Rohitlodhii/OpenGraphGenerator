@@ -19,11 +19,12 @@ const items = [
 type SupportedBackgroundType = 'solid' | 'mesh' | 'image' | 'Svg Gradient'
 
 type BackgroundPanelProps = {
-  isOpen: boolean
-  onToggle: () => void
+  isOpen?: boolean
+  onToggle?: () => void
+  chromeless?: boolean
 }
 
-const BackgroundPanel = ({ isOpen, onToggle }: BackgroundPanelProps) => {
+const BackgroundPanel = ({ isOpen, onToggle, chromeless = false }: BackgroundPanelProps) => {
   const { setBackgroundType } = useBackgroundStore()
   const [selected, setSelected] = useState<string>('solid');
 
@@ -33,6 +34,49 @@ const BackgroundPanel = ({ isOpen, onToggle }: BackgroundPanelProps) => {
       setBackgroundType(value as SupportedBackgroundType)
     }
   }
+
+  const typeSelect = (
+    <Select
+      defaultValue={'solid'}
+      onValueChange={(v) => handleSelectionChange(v as string)}
+    >
+      <SelectTrigger
+        size={"sm"}
+        className={chromeless
+          ? "w-full border-none shadow-none ring-1 ring-primary/10 h-8"
+          : "w-[50%] border-none shadow-none ring-1 ring-primary/10 h-6"}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectPopup>
+        {items.map((item) => (
+          <SelectItem key={item.value} value={item.value}>
+            {item.label}
+          </SelectItem>
+        ))}
+      </SelectPopup>
+    </Select>
+  )
+
+  const body = (
+    <>
+      {selected === 'solid' && <SolidColorPanel />}
+      {selected === 'image' && <ImagePanel />}
+      {selected === 'mesh' && <NewBackground />}
+      {selected === 'Svg Gradient' && <SvgGradientPanel />}
+    </>
+  )
+
+  if (chromeless) {
+    return (
+      <div className="flex flex-col gap-3">
+        {typeSelect}
+        <div className="flex flex-col">{body}</div>
+      </div>
+    )
+  }
+
   return (
     <div className='border border-border flex flex-col rounded-xl items-center overflow-hidden'>
         <div
@@ -43,44 +87,16 @@ const BackgroundPanel = ({ isOpen, onToggle }: BackgroundPanelProps) => {
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault()
-              onToggle()
+              onToggle?.()
             }
           }}
         >
           <span className='text-sm font-medium'>Background</span>
-         <Select
-          defaultValue={'solid'}
-          onValueChange={(v) => handleSelectionChange(v as string)}
-         >
-          <SelectTrigger
-            size={"sm"}
-            className="w-[50%] border-none shadow-none ring-1 ring-primary/10 h-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectPopup>
-            {items.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectPopup>
-          </Select>
+         {typeSelect}
         </div>
-       
-
-        
-        
-
-         
-        
 
         <div className={`w-full px-4 transition-all duration-200 ${isOpen ? 'py-2' : 'max-h-0 py-0 overflow-hidden'}`}>
-          {selected === 'solid' && <SolidColorPanel />}
-          {selected === 'image' && <ImagePanel />}
-          {selected === 'mesh' && <NewBackground />}
-          {selected === 'Svg Gradient' && <SvgGradientPanel />}
+          {body}
         </div>
 
     </div>
