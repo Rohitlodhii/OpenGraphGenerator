@@ -136,9 +136,9 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
     })
   }
 
-  const compactButton = "h-6 rounded-sm px-2 text-[11px]"
-  const compactIconButton = "h-6 w-6 rounded-sm p-0"
-  const compactInput = "h-6 w-16 rounded-sm px-2 text-xs focus-visible:ring-0 focus-visible:border-input"
+  const compactButton = "h-8 rounded-md px-3 text-xs"
+  const compactIconButton = "h-8 w-8 rounded-md p-0"
+  const compactInput = "h-8 w-20 rounded-md px-2 text-sm focus-visible:ring-0 focus-visible:border-input"
 
   return (
     <div
@@ -182,7 +182,7 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                 key={shape.value}
                 variant={activeShape === shape.value ? "default" : "secondary"}
                 size="sm"
-                className="h-8 justify-start rounded-md px-2 text-xs"
+                className="h-10 justify-start rounded-md px-3 text-sm"
                 onClick={() => setActiveShape(shape.value)}
               >
                 {shape.icon}
@@ -275,22 +275,22 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                         Positioning
                       </span>
                       <div className="grid grid-cols-2 gap-2">
-                        <div className="flex h-8 items-center gap-2 rounded-md border border-border px-2">
-                          <span className="text-xs font-medium text-muted-foreground">X</span>
+                        <div className="flex h-10 items-center gap-2 rounded-md border border-border px-2">
+                          <span className="text-sm font-medium text-muted-foreground">X</span>
                           <input
                             type="number"
                             value={Math.round(shape.x)}
                             onChange={(event) => updateShapeNumber(shape, "x", event.target.value)}
-                            className="h-full w-full min-w-0 border-0 bg-transparent text-xs outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            className="h-full w-full min-w-0 border-0 bg-transparent text-sm outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                           />
                         </div>
-                        <div className="flex h-8 items-center gap-2 rounded-md border border-border px-2">
-                          <span className="text-xs font-medium text-muted-foreground">Y</span>
+                        <div className="flex h-10 items-center gap-2 rounded-md border border-border px-2">
+                          <span className="text-sm font-medium text-muted-foreground">Y</span>
                           <input
                             type="number"
                             value={Math.round(shape.y)}
                             onChange={(event) => updateShapeNumber(shape, "y", event.target.value)}
-                            className="h-full w-full min-w-0 border-0 bg-transparent text-xs outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            className="h-full w-full min-w-0 border-0 bg-transparent text-sm outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                           />
                         </div>
                       </div>
@@ -325,8 +325,8 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
 
                       <div className="mt-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                         <div className="min-w-max flex items-center gap-2">
-                          <div className="h-6 w-6 rounded-sm border border-input bg-secondary flex items-center justify-center">
-                            <RotateCw className="h-3.5 w-3.5 text-muted-foreground" />
+                          <div className="h-8 w-8 rounded-md border border-input bg-secondary flex items-center justify-center">
+                            <RotateCw className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <Input
                             type="number"
@@ -546,9 +546,9 @@ function SliderWithInput({
   }, [inputValues, maxValue, minValue, onChange, sliderValue, validateAndUpdateValue])
 
   return (
-    <div className="flex items-center gap-2 ring-1 ring-primary/10 px-2 rounded-lg bg-secondary">
+    <div className="flex items-center gap-2 ring-1 ring-primary/10 px-2 py-1 rounded-lg bg-secondary">
       <span className="text-muted-foreground text-xs">
-        <ChevronsLeftRight className="h-4 w-6" />
+        <ChevronsLeftRight className="h-5 w-6" />
       </span>
       <Slider
         aria-label={label}
@@ -562,7 +562,7 @@ function SliderWithInput({
       <div className="flex items-center justify-center">
         <Input
           aria-label={`Enter ${label}`}
-          className="h-8 w-8 px-0 py-1 outline-none border-none shadow-none ring-0 focus-visible:ring-0"
+          className="h-9 w-10 px-0 py-1 text-sm text-center outline-none border-none shadow-none ring-0 focus-visible:ring-0"
           inputMode="decimal"
           onBlur={commitInputValue}
           onChange={(e) => handleInputChange(e, 0)}

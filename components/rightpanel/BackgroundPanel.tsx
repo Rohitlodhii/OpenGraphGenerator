@@ -43,7 +43,7 @@ const BackgroundPanel = ({ isOpen, onToggle, chromeless = false }: BackgroundPan
       <SelectTrigger
         size={"sm"}
         className={chromeless
-          ? "w-full border-none shadow-none ring-1 ring-primary/10 h-8"
+          ? "w-full border-none shadow-none ring-1 ring-primary/10 h-10 text-sm"
           : "w-[50%] border-none shadow-none ring-1 ring-primary/10 h-6"}
         onClick={(e) => e.stopPropagation()}
       >

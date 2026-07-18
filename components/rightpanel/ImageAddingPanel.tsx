@@ -62,9 +62,9 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
     event.target.value = ""
   }
 
-  const compactButton = "h-6 rounded-sm px-2 text-[11px]"
-  const compactIconButton = "h-6 w-6 rounded-sm p-0"
-  const compactInput = "h-6 w-16 rounded-sm px-2 text-xs focus-visible:ring-0 focus-visible:border-input"
+  const compactButton = "h-8 rounded-md px-3 text-xs"
+  const compactIconButton = "h-8 w-8 rounded-md p-0"
+  const compactInput = "h-8 w-20 rounded-md px-2 text-sm focus-visible:ring-0 focus-visible:border-input"
 
   return (
     <div
@@ -102,9 +102,9 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
         }
       >
         <div className="w-full flex flex-col gap-3">
-          <label className="flex items-center justify-center gap-2 px-3 py-2 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition">
+          <label className="flex items-center justify-center gap-2 px-3 py-3 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition">
             <input type="file" accept="image/*" multiple onChange={handleFiles} className="hidden" />
-            <Upload className="h-4 w-4 text-muted-foreground" />
+            <Upload className="h-5 w-5 text-muted-foreground" />
             <span className="text-sm">Upload & Add Images</span>
           </label>
 
@@ -115,12 +115,12 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
                 {imageObjects.map((item) => (
                   <div
                     key={item.id}
-                    className={`h-8 border rounded-md px-2 flex items-center justify-between gap-2 ${
+                    className={`h-10 border rounded-md px-3 flex items-center justify-between gap-2 ${
                       selectedObjectId === item.id ? "border-primary" : "border-border"
                     }`}
                   >
                     <button
-                      className="text-xs text-left truncate flex-1"
+                      className="text-sm text-left truncate flex-1"
                       onClick={() => setSelectedObjectId(item.id)}
                     >
                       Image {item.id.slice(0, 4)}
@@ -130,7 +130,7 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
                       onClick={() => removeObject(item.id)}
                       aria-label="Delete image"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 ))}
@@ -141,7 +141,7 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
           {selectedImageObject && (
             <>
               <div className="flex flex-col gap-1">
-                <span className="text-[11px] font-medium text-muted-foreground">Crop Zoom</span>
+                <span className="text-xs font-medium text-muted-foreground">Crop Zoom</span>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="secondary"
@@ -184,13 +184,13 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
               </div>
 
               <div className="flex flex-col gap-1">
-                <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
-                  <Crop className="h-3.5 w-3.5" />
+                <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                  <Crop className="h-4 w-4" />
                   Crop Offset
                 </span>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="flex gap-2 h-6 border border-border rounded-md px-2 items-center">
-                    <span className="text-xs">X</span>
+                  <div className="flex gap-2 h-10 border border-border rounded-md px-3 items-center">
+                    <span className="text-sm">X</span>
                     <input
                       type="number"
                       value={Math.round(selectedImageObject.imageCropX ?? 0)}
@@ -199,11 +199,11 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
                         if (Number.isNaN(parsed)) return
                         updateObject(selectedImageObject.id, { imageCropX: parsed })
                       }}
-                      className="h-6 border-0 ring-0 outline-0 text-xs w-full bg-transparent"
+                      className="h-full border-0 ring-0 outline-0 text-sm w-full bg-transparent"
                     />
                   </div>
-                  <div className="flex gap-2 h-6 border border-border rounded-md px-2 items-center">
-                    <span className="text-xs">Y</span>
+                  <div className="flex gap-2 h-10 border border-border rounded-md px-3 items-center">
+                    <span className="text-sm">Y</span>
                     <input
                       type="number"
                       value={Math.round(selectedImageObject.imageCropY ?? 0)}
@@ -212,7 +212,7 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
                         if (Number.isNaN(parsed)) return
                         updateObject(selectedImageObject.id, { imageCropY: parsed })
                       }}
-                      className="h-6 border-0 ring-0 outline-0 text-xs w-full bg-transparent"
+                      className="h-full border-0 ring-0 outline-0 text-sm w-full bg-transparent"
                     />
                   </div>
                 </div>

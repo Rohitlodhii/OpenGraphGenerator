@@ -78,8 +78,7 @@ const TemplateList = () => {
         onClick={handleSave}
         disabled={saving}
         variant="secondary"
-        size="sm"
-        className="justify-start text-xs"
+        className="h-10 justify-start text-sm"
       >
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
         Save as Template
@@ -114,7 +113,7 @@ const TemplateList = () => {
               onClick={() => handleLoad(template.id)}
               className="group relative flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-card p-2 text-left transition-colors hover:border-primary"
             >
-              <div className="relative aspect-[1200/630] h-12 shrink-0 overflow-hidden rounded-md bg-muted">
+              <div className="relative aspect-[1200/630] h-16 shrink-0 overflow-hidden rounded-md bg-muted">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={template.thumbnailUrl}
