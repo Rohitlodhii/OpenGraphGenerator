@@ -244,7 +244,11 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
           style={{
             left: 0,
             top: 0,
-            zIndex: object.zIndex ?? order + 1,
+            // Selected object is lifted to the top so it stays draggable even
+            // when it sits behind other elements. Its persisted zIndex (used by
+            // the layers panel) is unchanged.
+            zIndex:
+              selectedObjectId === object.id ? 9999 : object.zIndex ?? order + 1,
             outline:
               selectedObjectId === object.id ? "2px solid var(--primary)" : undefined,
             outlineOffset: selectedObjectId === object.id ? 2 : 0,
