@@ -141,7 +141,7 @@ const TextAddingPanel = ({ isOpen, onToggle }: TextAddingPanelProps) => {
     })
   }
 
-  const compactButton = "h-6 rounded-sm px-2 text-[11px]"
+  const compactButton = "flex items-center justify-center gap-2 px-3 py-2 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition"
 
   return (
     <div className="border border-border  flex flex-col rounded-xl items-center overflow-hidden">
