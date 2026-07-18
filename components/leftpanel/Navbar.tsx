@@ -2,6 +2,7 @@
 
 import React from "react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import LayersDialog from "./LayersDialog"
 
 type NavbarProps = {
   showSidebarToggle?: boolean
@@ -15,9 +16,12 @@ const Navbar = ({ showSidebarToggle = false }: NavbarProps) => {
         <div className="font-mono text-base tracking-wide">OPENGG</div>
       </div>
 
-      {showSidebarToggle ? (
-        <SidebarTrigger aria-label="Toggle left sidebar" />
-      ) : null}
+      <div className="flex items-center gap-2">
+        <LayersDialog />
+        {showSidebarToggle ? (
+          <SidebarTrigger aria-label="Toggle left sidebar" />
+        ) : null}
+      </div>
     </header>
   )
 }

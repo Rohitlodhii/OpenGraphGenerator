@@ -1,8 +1,15 @@
 import { create } from "zustand"
 
-export type CanvasObjectType = "text" | "image" | "svg"
+export type CanvasObjectType = "text" | "image" | "svg" | "pattern"
 export type CanvasShapeType = "circle" | "rectangle" | "triangle" | "square"
 export type CanvasTextAlign = "left" | "center" | "right" | "justify"
+export type CanvasPatternType =
+  | "dots"
+  | "grid"
+  | "cross"
+  | "diagonal"
+  | "horizontal"
+  | "vertical"
 
 export interface CanvasObject {
   id: string
@@ -15,6 +22,7 @@ export interface CanvasObject {
   src?: string
   rotation?: number
   zIndex?: number
+  hidden?: boolean
   shapeType?: CanvasShapeType
   fill?: string
   shapeOpacity?: number
@@ -23,6 +31,10 @@ export interface CanvasObject {
   shapeShadowColor?: string
   strokeColor?: string
   strokeWidth?: number
+  patternType?: CanvasPatternType
+  patternColor?: string
+  patternScale?: number
+  patternOpacity?: number
   fontSize?: number
   fontFamily?: string
   fontWeight?: number
@@ -52,6 +64,8 @@ interface CanvasState {
   sendBackward: (id: string) => void
   bringToFront: (id: string) => void
   sendToBack: (id: string) => void
+  toggleObjectHidden: (id: string) => void
+  reorderObjects: (orderedIds: string[]) => void
 }
 
 const orderObjects = (objects: CanvasObject[]) =>
@@ -103,6 +117,10 @@ const moveObjectToEnd = (objects: CanvasObject[], id: string, toTop: boolean) =>
   return applyOrder(reordered)(objects)
 }
 
+// Returns objects sorted bottom-to-top by stacking order (zIndex, then
+// insertion order). Exported for the global layers panel.
+export const getStackingOrder = (objects: CanvasObject[]) => orderObjects(objects)
+
 export const useCanvasStore = create<CanvasState>((set) => ({
   objects: [],
   selectedObjectId: null,
@@ -139,4 +157,27 @@ export const useCanvasStore = create<CanvasState>((set) => ({
 
   sendToBack: (id) =>
     set((state) => ({ objects: moveObjectToEnd(state.objects, id, false) })),
+
+  toggleObjectHidden: (id) =>
+    set((state) => ({
+      objects: state.objects.map((object) =>
+        object.id === id ? { ...object, hidden: !object.hidden } : object,
+      ),
+    })),
+
+  // Reassigns stacking order from an explicit top-to-bottom list of ids (as
+  // shown in the layers panel). Ids not present keep their relative order below.
+  reorderObjects: (orderedIds) =>
+    set((state) => {
+      // orderedIds is top-to-bottom; zIndex is bottom-to-top, so reverse it.
+      const bottomToTop = [...orderedIds].reverse()
+      const zIndexById = new Map<string, number>()
+      bottomToTop.forEach((id, index) => zIndexById.set(id, index + 1))
+      return {
+        objects: state.objects.map((object) => ({
+          ...object,
+          zIndex: zIndexById.get(object.id) ?? object.zIndex,
+        })),
+      }
+    }),
 }))
