@@ -15,7 +15,7 @@ import { generateShades } from '@/lib/generateColor'
 import ColorPopup from '../helpers/colorpopup'
 
 const SvgGradientPanel: React.FC = () => {
-  const { fills, blur, setBlur, backgroundColor, setBackgroundColor, offsetX, setOffsetX, offsetY, setOffsetY, pathsIndex, setIndex } =
+  const { fills, blur, setBlur, grain, setGrain, backgroundColor, setBackgroundColor, offsetX, setOffsetX, offsetY, setOffsetY, pathsIndex, setIndex } =
     useSvgGradientStore()
   const svgData = svgPaths[pathsIndex]
   if (!svgData) return null
@@ -45,6 +45,13 @@ const SvgGradientPanel: React.FC = () => {
       setBlur(vals[0])
     },
     [setBlur]
+  )
+
+  const handleGrainChange = React.useCallback(
+    (vals: number[]) => {
+      setGrain(vals[0])
+    },
+    [setGrain]
   )
 
   const handleOffsetXChange = React.useCallback(
@@ -98,9 +105,19 @@ const SvgGradientPanel: React.FC = () => {
           initialValue={[blur]}
           label='Blur'
           maxValue={50}
+          inputMaxValue={1000}
           minValue={0}
           step={1}
           onChange={handleBlurChange}
+        />
+        <SliderWithInput
+          defaultValue={[grain]}
+          initialValue={[grain]}
+          label='Grain'
+          maxValue={100}
+          minValue={0}
+          step={1}
+          onChange={handleGrainChange}
         />
       </div>
 
@@ -167,6 +184,7 @@ const SvgGradientPanel: React.FC = () => {
 function SliderWithInput({
   minValue,
   maxValue,
+  inputMaxValue,
   initialValue,
   defaultValue,
   label,
@@ -175,6 +193,7 @@ function SliderWithInput({
 }: {
   minValue: number
   maxValue: number
+  inputMaxValue?: number
   initialValue: number[]
   defaultValue: number[]
   label: string
@@ -182,7 +201,7 @@ function SliderWithInput({
   step?: number
 }) {
   const { sliderValue, inputValues, validateAndUpdateValue, handleInputChange, handleSliderChange } =
-    useSliderWithInput({ defaultValue, initialValue, maxValue, minValue })
+    useSliderWithInput({ defaultValue, initialValue, maxValue, inputMaxValue, minValue })
 
   const handleChange = React.useCallback(
     (newVals: number[]) => {
@@ -191,6 +210,23 @@ function SliderWithInput({
     },
     [handleSliderChange, onChange]
   )
+
+  const commitInputValue = React.useCallback(() => {
+    const rawValue = inputValues[0]
+    validateAndUpdateValue(rawValue, 0)
+    if (!onChange) return
+    const cap = inputMaxValue ?? maxValue
+    if (rawValue === "" || rawValue === "-") {
+      onChange([minValue])
+      return
+    }
+    const parsed = Number.parseFloat(rawValue)
+    if (Number.isNaN(parsed)) {
+      onChange(sliderValue)
+      return
+    }
+    onChange([Math.max(minValue, Math.min(cap, parsed))])
+  }, [inputValues, inputMaxValue, maxValue, minValue, onChange, sliderValue, validateAndUpdateValue])
 
   return (
     <div className='flex items-center gap-2 ring-1 ring-primary/10 px-2 rounded-lg bg-secondary'>
@@ -211,11 +247,11 @@ function SliderWithInput({
           aria-label='Enter value'
           className='h-8 w-8 px-0 py-1 outline-none border-none shadow-none ring-0 focus-visible:ring-0'
           inputMode='decimal'
-          onBlur={() => validateAndUpdateValue(inputValues[0], 0)}
+          onBlur={commitInputValue}
           onChange={(e) => handleInputChange(e, 0)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              validateAndUpdateValue(inputValues[0], 0)
+              commitInputValue()
             }
           }}
           type='text'

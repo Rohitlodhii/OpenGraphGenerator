@@ -1,10 +1,14 @@
 "use client"
 
-import React, { useMemo } from "react"
-import { Crop, ImagePlus, Minus, Plus, Trash2, Upload } from "lucide-react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
+import { ImagePlus, Minus, Plus, Trash2, Upload } from "lucide-react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { useCanvasStore } from "@/store/canvasstore"
+import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "../ui/accordion"
+import { Select, SelectTrigger, SelectValue, SelectPopup, SelectItem } from "../ui/select"
+import ColorPopup from "../helpers/colorpopup"
+import SliderWithInput from "../helpers/SliderWithInput"
 
 type ImageAddingPanelProps = {
   isOpen?: boolean
@@ -19,10 +23,26 @@ const createId = () => {
   return `image-${Date.now()}-${Math.floor(Math.random() * 100000)}`
 }
 
+const BLEND_MODES = [
+  "normal",
+  "multiply",
+  "screen",
+  "overlay",
+  "darken",
+  "lighten",
+  "color-dodge",
+  "color-burn",
+  "hard-light",
+  "soft-light",
+  "difference",
+  "exclusion",
+]
+
 const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingPanelProps) => {
   const expanded = chromeless ? true : isOpen
   const { objects, selectedObjectId, addObject, updateObject, removeObject, setSelectedObjectId } =
     useCanvasStore()
+  const [openItems, setOpenItems] = useState<string[]>([])
 
   const imageObjects = useMemo(
     () =>
@@ -36,6 +56,14 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
     const selected = imageObjects.find((obj) => obj.id === selectedObjectId)
     return selected ?? null
   }, [imageObjects, selectedObjectId])
+
+  // Auto-expand accordion when image is selected on canvas
+  useEffect(() => {
+    if (!selectedObjectId) return
+    const isImage = imageObjects.some((image) => image.id === selectedObjectId)
+    if (!isImage) return
+    setOpenItems((prev) => (prev.includes(selectedObjectId) ? prev : [...prev, selectedObjectId]))
+  }, [selectedObjectId, imageObjects])
 
   const handleFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
@@ -56,6 +84,10 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
         imageCropX: 0,
         imageCropY: 0,
         imageCropScale: 1,
+        imageBlendMode: "normal",
+        imageGrain: 0,
+        imageBlur: 0,
+        imageBorderRadius: 8,
       })
     })
 
@@ -63,8 +95,8 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
   }
 
   const compactButton = "h-8 rounded-md px-3 text-xs"
-  const compactIconButton = "h-8 w-8 rounded-md p-0"
-  const compactInput = "h-8 w-20 rounded-md px-2 text-sm focus-visible:ring-0 focus-visible:border-input"
+  const compactIconButton = "h-8 w-8 rounded-md p-0 shrink-0"
+  const compactInput = "h-8 w-full min-w-0 flex-1 rounded-md px-2 text-xs focus-visible:ring-0 focus-visible:border-input"
 
   return (
     <div
@@ -111,128 +143,254 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
           {imageObjects.length > 0 && (
             <div className="flex flex-col gap-2">
               <span className="text-xs text-muted-foreground font-medium">Image Layers</span>
-              <div className="flex flex-col gap-1.5">
-                {imageObjects.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`h-10 border rounded-md px-3 flex items-center justify-between gap-2 ${
-                      selectedObjectId === item.id ? "border-primary" : "border-border"
-                    }`}
+              <Accordion value={openItems} onValueChange={(value) => setOpenItems(value as string[])}>
+                {imageObjects.map((image) => (
+                  <AccordionItem
+                    key={image.id}
+                    value={image.id}
+                    className="border border-border rounded-md bg-card overflow-hidden"
                   >
-                    <button
-                      className="text-sm text-left truncate flex-1"
-                      onClick={() => setSelectedObjectId(item.id)}
-                    >
-                      Image {item.id.slice(0, 4)}
-                    </button>
-                    <button
-                      className="text-destructive"
-                      onClick={() => removeObject(item.id)}
-                      aria-label="Delete image"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+                    <AccordionTrigger className="w-full h-8 px-2 flex items-center justify-between gap-2 py-0 text-xs text-muted-foreground [&_[data-slot=accordion-indicator]]:hidden">
+                      <span className="text-xs text-muted-foreground">Image {image.id.slice(0, 4)}</span>
+                      <button
+                        className="text-destructive"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          removeObject(image.id)
+                        }}
+                        aria-label="Delete image"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </AccordionTrigger>
+
+                    <AccordionPanel className="pb-0 border-t border-border">
+                      <div className="flex flex-col gap-1.5 p-2">
+                        {/* Crop Section */}
+                        <span className="text-[11px] font-medium tracking-wide text-muted-foreground">
+                          Crop Zoom
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className={compactIconButton}
+                            onClick={() =>
+                              updateObject(image.id, {
+                                imageCropScale: Math.max(1, (image.imageCropScale ?? 1) - 0.05),
+                              })
+                            }
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className={compactIconButton}
+                            onClick={() =>
+                              updateObject(image.id, {
+                                imageCropScale: Math.min(4, (image.imageCropScale ?? 1) + 0.05),
+                              })
+                            }
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                          <Input
+                            type="number"
+                            step="0.05"
+                            value={(image.imageCropScale ?? 1).toFixed(2)}
+                            onChange={(event) => {
+                              const parsed = Number(event.target.value)
+                              if (Number.isNaN(parsed)) return
+                              updateObject(image.id, {
+                                imageCropScale: Math.max(1, Math.min(4, parsed)),
+                              })
+                            }}
+                            className={compactInput}
+                          />
+                        </div>
+
+                        <span className="mt-1 text-[11px] font-medium tracking-wide text-muted-foreground">
+                          Crop Offset
+                        </span>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex h-8 items-center gap-2 rounded-md border border-border px-2">
+                            <span className="text-xs font-medium text-muted-foreground">X</span>
+                            <input
+                              type="number"
+                              value={Math.round(image.imageCropX ?? 0)}
+                              onChange={(event) => {
+                                const parsed = Number(event.target.value)
+                                if (Number.isNaN(parsed)) return
+                                updateObject(image.id, { imageCropX: parsed })
+                              }}
+                              className="h-full w-full min-w-0 border-0 bg-transparent text-xs outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            />
+                          </div>
+                          <div className="flex h-8 items-center gap-2 rounded-md border border-border px-2">
+                            <span className="text-xs font-medium text-muted-foreground">Y</span>
+                            <input
+                              type="number"
+                              value={Math.round(image.imageCropY ?? 0)}
+                              onChange={(event) => {
+                                const parsed = Number(event.target.value)
+                                if (Number.isNaN(parsed)) return
+                                updateObject(image.id, { imageCropY: parsed })
+                              }}
+                              className="h-full w-full min-w-0 border-0 bg-transparent text-xs outline-none ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Appearance Section */}
+                        <span className="mt-1 text-[11px] font-medium tracking-wide text-muted-foreground">
+                          Appearance
+                        </span>
+                        <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs font-medium text-muted-foreground">Border Radius</span>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="50"
+                              value={Math.round(image.imageBorderRadius ?? 8)}
+                              onChange={(event) => {
+                                const parsed = Number(event.target.value)
+                                if (Number.isNaN(parsed)) return
+                                updateObject(image.id, {
+                                  imageBorderRadius: Math.max(0, Math.min(50, parsed)),
+                                })
+                              }}
+                              className={compactInput}
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs font-medium text-muted-foreground">Blend Mode</span>
+                            <Select
+                              value={image.imageBlendMode ?? "normal"}
+                              onValueChange={(value) => updateObject(image.id, { imageBlendMode: value })}
+                            >
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectPopup>
+                                {BLEND_MODES.map((mode) => (
+                                  <SelectItem key={mode} value={mode}>
+                                    {mode}
+                                  </SelectItem>
+                                ))}
+                              </SelectPopup>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Effects Section */}
+                        <span className="mt-1 text-[11px] font-medium tracking-wide text-muted-foreground">
+                          Effects
+                        </span>
+                        <SliderWithInput
+                          key={`image-blur-${image.id}`}
+                          defaultValue={[image.imageBlur ?? 0]}
+                          initialValue={[image.imageBlur ?? 0]}
+                          label="Blur"
+                          maxValue={100}
+                          inputMaxValue={1000}
+                          minValue={0}
+                          step={1}
+                          onChange={(vals) => updateObject(image.id, { imageBlur: vals[0] })}
+                        />
+                        <SliderWithInput
+                          key={`image-grain-${image.id}`}
+                          defaultValue={[image.imageGrain ?? 0]}
+                          initialValue={[image.imageGrain ?? 0]}
+                          label="Grain"
+                          maxValue={100}
+                          minValue={0}
+                          step={1}
+                          onChange={(vals) => updateObject(image.id, { imageGrain: vals[0] })}
+                        />
+
+                        {/* Stroke Section */}
+                        <span className="mt-1 text-[11px] font-medium tracking-wide text-muted-foreground">
+                          Stroke
+                        </span>
+                        {!image.imageStrokeColor ? (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className={compactButton}
+                            onClick={() =>
+                              updateObject(image.id, {
+                                imageStrokeColor: "#000000",
+                                imageStrokeWidth: 2,
+                              })
+                            }
+                          >
+                            <Plus className="h-4 w-4" />
+                            Add Stroke
+                          </Button>
+                        ) : (
+                          <div className="flex flex-col gap-2">
+                            <ColorPopup
+                              color={image.imageStrokeColor}
+                              onChange={(hex) => updateObject(image.id, { imageStrokeColor: hex })}
+                              label=""
+                              className=""
+                            />
+                            <SliderWithInput
+                              key={`image-stroke-width-${image.id}`}
+                              defaultValue={[image.imageStrokeWidth ?? 2]}
+                              initialValue={[image.imageStrokeWidth ?? 2]}
+                              label="Width"
+                              maxValue={20}
+                              minValue={1}
+                              step={1}
+                              onChange={(vals) => updateObject(image.id, { imageStrokeWidth: vals[0] })}
+                            />
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className={`${compactButton} text-destructive`}
+                              onClick={() =>
+                                updateObject(image.id, {
+                                  imageStrokeColor: undefined,
+                                  imageStrokeWidth: undefined,
+                                })
+                              }
+                            >
+                              Remove Stroke
+                            </Button>
+                          </div>
+                        )}
+
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className={`${compactButton} mt-2`}
+                          onClick={() =>
+                            updateObject(image.id, {
+                              imageCropScale: 1,
+                              imageCropX: 0,
+                              imageCropY: 0,
+                              imageBlur: 0,
+                              imageGrain: 0,
+                              imageBorderRadius: 8,
+                              imageBlendMode: "normal",
+                              imageStrokeColor: undefined,
+                              imageStrokeWidth: undefined,
+                            })
+                          }
+                        >
+                          Reset All
+                        </Button>
+                      </div>
+                    </AccordionPanel>
+                  </AccordionItem>
                 ))}
-              </div>
+              </Accordion>
             </div>
-          )}
-
-          {selectedImageObject && (
-            <>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-muted-foreground">Crop Zoom</span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className={compactIconButton}
-                    onClick={() =>
-                      updateObject(selectedImageObject.id, {
-                        imageCropScale: Math.max(1, (selectedImageObject.imageCropScale ?? 1) - 0.05),
-                      })
-                    }
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className={compactIconButton}
-                    onClick={() =>
-                      updateObject(selectedImageObject.id, {
-                        imageCropScale: Math.min(4, (selectedImageObject.imageCropScale ?? 1) + 0.05),
-                      })
-                    }
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                  <Input
-                    type="number"
-                    step="0.05"
-                    value={(selectedImageObject.imageCropScale ?? 1).toFixed(2)}
-                    onChange={(event) => {
-                      const parsed = Number(event.target.value)
-                      if (Number.isNaN(parsed)) return
-                      updateObject(selectedImageObject.id, {
-                        imageCropScale: Math.max(1, Math.min(4, parsed)),
-                      })
-                    }}
-                    className={compactInput}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <Crop className="h-4 w-4" />
-                  Crop Offset
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex gap-2 h-10 border border-border rounded-md px-3 items-center">
-                    <span className="text-sm">X</span>
-                    <input
-                      type="number"
-                      value={Math.round(selectedImageObject.imageCropX ?? 0)}
-                      onChange={(event) => {
-                        const parsed = Number(event.target.value)
-                        if (Number.isNaN(parsed)) return
-                        updateObject(selectedImageObject.id, { imageCropX: parsed })
-                      }}
-                      className="h-full border-0 ring-0 outline-0 text-sm w-full bg-transparent"
-                    />
-                  </div>
-                  <div className="flex gap-2 h-10 border border-border rounded-md px-3 items-center">
-                    <span className="text-sm">Y</span>
-                    <input
-                      type="number"
-                      value={Math.round(selectedImageObject.imageCropY ?? 0)}
-                      onChange={(event) => {
-                        const parsed = Number(event.target.value)
-                        if (Number.isNaN(parsed)) return
-                        updateObject(selectedImageObject.id, { imageCropY: parsed })
-                      }}
-                      className="h-full border-0 ring-0 outline-0 text-sm w-full bg-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                size="sm"
-                variant="secondary"
-                className={compactButton}
-                onClick={() =>
-                  updateObject(selectedImageObject.id, {
-                    imageCropScale: 1,
-                    imageCropX: 0,
-                    imageCropY: 0,
-                  })
-                }
-              >
-                Reset Crop
-              </Button>
-            </>
           )}
         </div>
       </div>

@@ -3,8 +3,8 @@
 import React from "react"
 import { Plus, Trash2 } from "lucide-react"
 import { Button } from "../ui/button"
-import { Input } from "../ui/input"
 import ColorPopup from "../helpers/colorpopup"
+import SliderWithInput from "../helpers/SliderWithInput"
 import { CanvasObject, CanvasPatternType, useCanvasStore } from "@/store/canvasstore"
 import {
   PATTERNS,
@@ -149,41 +149,25 @@ const PatternLayerControls = ({
         className="bg-secondary"
       />
 
-      <label className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className="w-14 shrink-0">Scale</span>
-        <input
-          type="range"
-          min={8}
-          max={80}
-          value={pattern.patternScale ?? DEFAULT_PATTERN_SCALE}
-          onChange={(event) => onUpdate({ patternScale: Number(event.target.value) })}
-          className="w-full accent-primary"
-        />
-        <Input
-          type="number"
-          value={pattern.patternScale ?? DEFAULT_PATTERN_SCALE}
-          onChange={(event) => onUpdate({ patternScale: Number(event.target.value) })}
-          className="h-8 w-16 text-sm"
-        />
-      </label>
+      <SliderWithInput
+        key={`pattern-scale-${pattern.id}`}
+        defaultValue={[pattern.patternScale ?? DEFAULT_PATTERN_SCALE]}
+        initialValue={[pattern.patternScale ?? DEFAULT_PATTERN_SCALE]}
+        label="Scale"
+        minValue={8}
+        maxValue={80}
+        onChange={(vals) => onUpdate({ patternScale: vals[0] })}
+      />
 
-      <label className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className="w-14 shrink-0">Opacity</span>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={pattern.patternOpacity ?? DEFAULT_PATTERN_OPACITY}
-          onChange={(event) => onUpdate({ patternOpacity: Number(event.target.value) })}
-          className="w-full accent-primary"
-        />
-        <Input
-          type="number"
-          value={pattern.patternOpacity ?? DEFAULT_PATTERN_OPACITY}
-          onChange={(event) => onUpdate({ patternOpacity: Number(event.target.value) })}
-          className="h-8 w-16 text-sm"
-        />
-      </label>
+      <SliderWithInput
+        key={`pattern-opacity-${pattern.id}`}
+        defaultValue={[pattern.patternOpacity ?? DEFAULT_PATTERN_OPACITY]}
+        initialValue={[pattern.patternOpacity ?? DEFAULT_PATTERN_OPACITY]}
+        label="Opacity"
+        minValue={0}
+        maxValue={100}
+        onChange={(vals) => onUpdate({ patternOpacity: vals[0] })}
+      />
     </div>
   )
 }

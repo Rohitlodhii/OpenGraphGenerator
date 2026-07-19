@@ -236,11 +236,17 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
         scale={zoom / 100}
         position={{ x: object.x, y: object.y }}
         onDrag={handleDrag}
-        disabled={isResizing || isTextEditing}
+        disabled={isResizing || isTextEditing || selectedObjectId !== object.id}
       >
         <ContextMenuTrigger
           ref={nodeRef}
-          className={`canvas-object absolute select-none ${isTextEditing ? "cursor-text" : "cursor-move"}`}
+          className={`canvas-object absolute select-none ${
+            isTextEditing
+              ? "cursor-text"
+              : selectedObjectId === object.id
+                ? "cursor-move"
+                : "cursor-grab"
+          }`}
           style={{
             left: 0,
             top: 0,
@@ -253,12 +259,22 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
               selectedObjectId === object.id ? "2px solid var(--primary)" : undefined,
             outlineOffset: selectedObjectId === object.id ? 2 : 0,
           }}
-          onMouseDown={(event) => {
-            event.stopPropagation()
-            setSelectedObjectId(object.id)
-          }}
         >
-          {renderObject()}
+          {/* Selection is handled on this inner wrapper, not on the trigger:
+              react-draggable clones the trigger and overrides its onMouseDown,
+              so a handler placed directly on the trigger never fires. We do NOT
+              stop propagation here so that, once selected, the mousedown still
+              reaches react-draggable to begin a drag. */}
+          <div
+            className="contents"
+            onMouseDown={() => {
+              if (selectedObjectId !== object.id) {
+                setSelectedObjectId(object.id)
+              }
+            }}
+          >
+            {renderObject()}
+          </div>
           {selectedObjectId === object.id && !isTextEditing && (
             <div
               className="absolute -right-1.5 -bottom-1.5 h-3 w-3 rounded-full border-2 border-background bg-primary shadow-sm cursor-se-resize"

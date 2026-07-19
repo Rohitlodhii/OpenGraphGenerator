@@ -13,7 +13,7 @@ const Workspace = () => {
     <SidebarProvider>
       <div className='w-full h-screen flex flex-col gap-0'>
         {/* Top navbar - full width */}
-        <Navbar showSidebarToggle={isMobile} />
+        <Navbar />
 
         <div className='flex-1 min-h-0 w-full flex flex-col md:flex-row gap-0'>
           {/* Left Section - desktop only */}

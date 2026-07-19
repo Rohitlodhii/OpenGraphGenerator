@@ -7,7 +7,6 @@ import {
   AlignLeft,
   AlignRight,
   BoldIcon,
-  ChevronsLeftRight,
   ItalicIcon,
   Plus,
   Trash2,
@@ -15,13 +14,10 @@ import {
   UnderlineIcon,
 } from "lucide-react"
 import { Button } from "../ui/button"
-import { Input } from "../ui/input"
-import { Label } from "../ui/label"
-import { Slider } from "../ui/slider"
 import { Textarea } from "../ui/textarea"
-import { useSliderWithInput } from "@/hooks/use-slider-with-input"
 import { CanvasTextAlign, useCanvasStore } from "@/store/canvasstore"
 import ColorPopup from "../helpers/colorpopup"
+import SliderWithInput from "../helpers/SliderWithInput"
 import { ToggleGroup } from "../ui/toggle-group"
 import { Toggle } from "../ui/toggle"
 import FontPicker from "./FontPicker"
@@ -185,7 +181,7 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
                 {textObjects.map((item) => (
                   <div
                     key={item.id}
-                    className={`h-10 border rounded-md px-3 flex items-center justify-between gap-2 ${selectedObjectId === item.id ? "border-primary" : "border-border"
+                    className={`h-8 border rounded-md px-3 flex items-center justify-between gap-2 ${selectedObjectId === item.id ? "border-primary" : "border-border"
                       }`}
                   >
                     <button
@@ -231,13 +227,13 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
 
                   <div className="flex gap-1">
                     <ToggleGroup value={activeFormatting} multiple onValueChange={setFormatting} size="sm" variant="outline">
-                      <Toggle aria-label="Toggle bold" value="bold">
+                      <Toggle aria-label="Toggle bold" value="bold" className="h-8 min-w-8 sm:h-8 sm:min-w-8">
                         <BoldIcon />
                       </Toggle>
-                      <Toggle aria-label="Toggle italic" value="italic">
+                      <Toggle aria-label="Toggle italic" value="italic" className="h-8 min-w-8 sm:h-8 sm:min-w-8">
                         <ItalicIcon />
                       </Toggle>
-                      <Toggle aria-label="Toggle underline" value="underline">
+                      <Toggle aria-label="Toggle underline" value="underline" className="h-8 min-w-8 sm:h-8 sm:min-w-8">
                         <UnderlineIcon />
                       </Toggle>
                     </ToggleGroup>
@@ -254,16 +250,16 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
                       size="sm"
                       variant="outline"
                     >
-                      <Toggle aria-label="Align left" value="left">
+                      <Toggle aria-label="Align left" value="left" className="h-8 min-w-8 sm:h-8 sm:min-w-8">
                         <AlignLeft />
                       </Toggle>
-                      <Toggle aria-label="Align center" value="center">
+                      <Toggle aria-label="Align center" value="center" className="h-8 min-w-8 sm:h-8 sm:min-w-8">
                         <AlignCenter />
                       </Toggle>
-                      <Toggle aria-label="Align right" value="right">
+                      <Toggle aria-label="Align right" value="right" className="h-8 min-w-8 sm:h-8 sm:min-w-8">
                         <AlignRight />
                       </Toggle>
-                      <Toggle aria-label="Align justify" value="justify">
+                      <Toggle aria-label="Align justify" value="justify" className="h-8 min-w-8 sm:h-8 sm:min-w-8">
                         <AlignJustify />
                       </Toggle>
                     </ToggleGroup>
@@ -275,8 +271,6 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
               </div>
 
             <div className="flex flex-col gap-2">
-                <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                <div className="min-w-max">
                   <SliderWithInput
                     key={`fontsize-${selectedTextObject.id}`}
                     defaultValue={[selectedTextObject.fontSize ?? 36]}
@@ -286,11 +280,7 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
                     minValue={8}
                     onChange={(vals) => updateObject(selectedTextObject.id, { fontSize: vals[0] })}
                   />
-                </div>
-              </div>
 
-              <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                <div className="min-w-max">
                   <SliderWithInput
                     key={`lineheight-${selectedTextObject.id}`}
                     defaultValue={[selectedTextObject.lineHeight ?? 1.2]}
@@ -301,11 +291,7 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
                     step={0.05}
                     onChange={(vals) => updateObject(selectedTextObject.id, { lineHeight: vals[0] })}
                   />
-                </div>
-              </div>
 
-              <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                <div className="min-w-max">
                   <SliderWithInput
                     key={`tracking-${selectedTextObject.id}`}
                     defaultValue={[selectedTextObject.letterSpacing ?? 0]}
@@ -316,11 +302,7 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
                     step={0.5}
                     onChange={(vals) => updateObject(selectedTextObject.id, { letterSpacing: vals[0] })}
                   />
-                </div>
-              </div>
 
-              <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                <div className="min-w-max">
                   <SliderWithInput
                     key={`fontweight-${selectedTextObject.id}`}
                     defaultValue={[selectedTextObject.fontWeight ?? 700]}
@@ -331,11 +313,7 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
                     step={100}
                     onChange={(vals) => updateObject(selectedTextObject.id, { fontWeight: vals[0] })}
                   />
-                </div>
-              </div>
 
-              <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                <div className="min-w-max">
                   <SliderWithInput
                     key={`fontopacity-${selectedTextObject.id}`}
                     defaultValue={[selectedTextObject.fontOpacity ?? 100]}
@@ -345,30 +323,25 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
                     minValue={0}
                     onChange={(vals) => updateObject(selectedTextObject.id, { fontOpacity: vals[0] })}
                   />
-                </div>
-              </div>
             </div>
 
-              <div className="overflow-x-auto flex flex-col gap-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex flex-col gap-2">
                 <h2 className="text-xs font-medium text-muted-foreground">Text Shadow</h2>
-                  <ColorPopup
-                color={selectedTextObject.textShadowColor ?? "#000000"}
-                onChange={(hex) => updateObject(selectedTextObject.id, { textShadowColor: hex })}
-                label="[Shadow]"
-                className="bg-secondary"
-              />
-                <div className="min-w-max">
-                  
-                  <SliderWithInput
-                    key={`shadow-${selectedTextObject.id}`}
-                    defaultValue={[selectedTextObject.textShadow ?? 0]}
-                    initialValue={[selectedTextObject.textShadow ?? 0]}
-                    label="Offset"
-                    maxValue={50}
-                    minValue={0}
-                    onChange={(vals) => updateObject(selectedTextObject.id, { textShadow: vals[0] })}
-                  />
-                </div>
+                <ColorPopup
+                  color={selectedTextObject.textShadowColor ?? "#000000"}
+                  onChange={(hex) => updateObject(selectedTextObject.id, { textShadowColor: hex })}
+                  label="[Shadow]"
+                  className="bg-secondary"
+                />
+                <SliderWithInput
+                  key={`shadow-${selectedTextObject.id}`}
+                  defaultValue={[selectedTextObject.textShadow ?? 0]}
+                  initialValue={[selectedTextObject.textShadow ?? 0]}
+                  label="Offset"
+                  maxValue={50}
+                  minValue={0}
+                  onChange={(vals) => updateObject(selectedTextObject.id, { textShadow: vals[0] })}
+                />
               </div>
 
               <div className="flex flex-col gap-1">
@@ -383,112 +356,28 @@ const TextAddingPanel = ({ isOpen, onToggle, chromeless = false }: TextAddingPan
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <div className="flex gap-2 h-10 border border-border rounded-md px-3 items-center">
-                  <span className="text-sm">X</span>
+                <div className="flex gap-2 h-8 border border-border rounded-md px-3 items-center">
+                  <span className="text-xs text-muted-foreground">X</span>
                   <input
                     type="number"
                     value={Math.round(selectedTextObject.x)}
                     onChange={(event) => updateNumberField("x", event.target.value)}
-                    className="h-full border-0 ring-0 outline-0 text-sm w-full bg-transparent"
+                    className="h-full border-0 ring-0 outline-0 text-xs w-full bg-transparent"
                   />
                 </div>
-                <div className="flex gap-2 h-10 border border-border rounded-md px-3 items-center">
-                  <span className="text-sm">Y</span>
+                <div className="flex gap-2 h-8 border border-border rounded-md px-3 items-center">
+                  <span className="text-xs text-muted-foreground">Y</span>
                   <input
                     type="number"
                     value={Math.round(selectedTextObject.y)}
                     onChange={(event) => updateNumberField("y", event.target.value)}
-                    className="h-full border-0 ring-0 outline-0 text-sm w-full bg-transparent"
+                    className="h-full border-0 ring-0 outline-0 text-xs w-full bg-transparent"
                   />
                 </div>
               </div>
             </>
           )}
         </div>
-      </div>
-    </div>
-  )
-}
-
-function SliderWithInput({
-  minValue,
-  maxValue,
-  initialValue,
-  defaultValue,
-  label,
-  onChange,
-  step = 1,
-}: {
-  minValue: number
-  maxValue: number
-  initialValue: number[]
-  defaultValue: number[]
-  label: string
-  onChange?: (value: number[]) => void
-  step?: number
-}) {
-  const {
-    sliderValue,
-    inputValues,
-    validateAndUpdateValue,
-    handleInputChange,
-    handleSliderChange,
-  } = useSliderWithInput({ defaultValue, initialValue, maxValue, minValue })
-
-  const handleChange = React.useCallback(
-    (newVals: number[]) => {
-      handleSliderChange(newVals)
-      if (onChange) onChange(newVals)
-    },
-    [handleSliderChange, onChange],
-  )
-
-  const commitInputValue = React.useCallback(() => {
-    const rawValue = inputValues[0]
-    validateAndUpdateValue(rawValue, 0)
-    if (!onChange) return
-    if (rawValue === "" || rawValue === "-") {
-      onChange([minValue])
-      return
-    }
-    const parsed = Number.parseFloat(rawValue)
-    if (Number.isNaN(parsed)) {
-      onChange(sliderValue)
-      return
-    }
-    onChange([Math.max(minValue, Math.min(maxValue, parsed))])
-  }, [inputValues, maxValue, minValue, onChange, sliderValue, validateAndUpdateValue])
-
-  return (
-    <div className="flex items-center gap-2 ring-1 ring-primary/10 px-2 py-1 rounded-lg bg-secondary">
-      <span className="text-muted-foreground text-xs">
-        <ChevronsLeftRight className="h-5 w-6" />
-      </span>
-      <Slider
-        aria-label={label}
-        className="grow [&>:last-child>span]:rounded"
-        max={maxValue}
-        min={minValue}
-        step={step}
-        onValueChange={handleChange}
-        value={sliderValue}
-      />
-      <div className="flex items-center justify-center">
-        <Input
-          aria-label={`Enter ${label}`}
-          className="h-9 w-10 px-0 py-1 text-sm text-center outline-none border-none shadow-none ring-0 focus-visible:ring-0"
-          inputMode="decimal"
-          onBlur={commitInputValue}
-          onChange={(e) => handleInputChange(e, 0)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              commitInputValue()
-            }
-          }}
-          type="text"
-          value={inputValues[0]}
-        />
-        <Label className="text-muted-foreground text-xs font-mono">{`[${label}]`}</Label>
       </div>
     </div>
   )

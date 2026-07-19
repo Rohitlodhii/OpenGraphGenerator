@@ -13,18 +13,18 @@ const ColorPopup = ({ color, onChange, label = '[Color]', className = '' }: Colo
   return (
     <Popover>
       <div className={`border border-border w-full px-1.5 rounded-lg flex gap-2 h-8 items-center justify-between ${className}`}>
-        <div className='flex items-center gap-2'>
+        <div className='flex min-w-0 flex-1 items-center gap-2'>
           <PopoverTrigger
             className='h-5 w-5 aspect-square rounded-sm cursor-pointer border border-border p-0'
             style={{ backgroundColor: color }}
           />
           <input
-            className="h-6 border-none outline-none ring-0 text-sm text-muted-foreground"
+            className="h-6 w-full min-w-0 border-none outline-none ring-0 text-sm text-muted-foreground bg-transparent"
             value={color}
             onChange={(e) => onChange(e.target.value)}
           />
         </div>
-        <span className='text-muted-foreground text-xs font-mono'>{label}</span>
+        <span className='shrink-0 text-muted-foreground text-xs font-mono'>{label}</span>
       </div>
 
       <PopoverPopup className={"p-0 px-0 py-0  "}>

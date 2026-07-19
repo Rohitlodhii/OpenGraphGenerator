@@ -51,6 +51,12 @@ export interface CanvasObject {
   imageCropX?: number
   imageCropY?: number
   imageCropScale?: number
+  imageBlendMode?: string
+  imageGrain?: number
+  imageBlur?: number
+  imageStrokeColor?: string
+  imageStrokeWidth?: number
+  imageBorderRadius?: number
 }
 
 interface CanvasState {

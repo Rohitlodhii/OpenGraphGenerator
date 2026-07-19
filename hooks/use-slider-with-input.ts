@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 type UseSliderWithInputProps = {
   minValue?: number;
   maxValue?: number;
+  inputMaxValue?: number;
   initialValue?: number[];
   defaultValue?: number[];
 };
@@ -12,6 +13,7 @@ type UseSliderWithInputProps = {
 export function useSliderWithInput({
   minValue = 0,
   maxValue = 100,
+  inputMaxValue,
   initialValue = [minValue],
   defaultValue = [minValue],
 }: UseSliderWithInputProps) {
@@ -46,7 +48,7 @@ export function useSliderWithInput({
         return;
       }
 
-      let clampedValue = Math.min(maxValue, Math.max(minValue, numValue));
+      let clampedValue = Math.min(inputMaxValue ?? maxValue, Math.max(minValue, numValue));
 
       if (sliderValue.length > 1) {
         if (index === 0) {
@@ -64,7 +66,7 @@ export function useSliderWithInput({
       newInputValues[index] = clampedValue.toString();
       setInputValues(newInputValues);
     },
-    [sliderValue, inputValues, minValue, maxValue],
+    [sliderValue, inputValues, minValue, maxValue, inputMaxValue],
   );
 
   const handleInputChange = useCallback(

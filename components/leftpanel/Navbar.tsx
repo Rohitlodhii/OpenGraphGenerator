@@ -2,15 +2,10 @@
 
 import React from "react"
 import { Layers } from "lucide-react"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { useLayersPanelStore } from "@/store/layerspanelstore"
 
-type NavbarProps = {
-  showSidebarToggle?: boolean
-}
-
-const Navbar = ({ showSidebarToggle = false }: NavbarProps) => {
+const Navbar = () => {
   const toggleLayers = useLayersPanelStore((state) => state.toggle)
   const layersOpen = useLayersPanelStore((state) => state.open)
 
@@ -32,9 +27,6 @@ const Navbar = ({ showSidebarToggle = false }: NavbarProps) => {
           <Layers className="h-4 w-4" />
           Layers
         </Button>
-        {showSidebarToggle ? (
-          <SidebarTrigger aria-label="Toggle left sidebar" />
-        ) : null}
       </div>
     </header>
   )

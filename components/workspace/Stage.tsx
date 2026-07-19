@@ -30,7 +30,15 @@ const Stage: React.FC<StageProps> = ({ width, height, zoom, children }) => {
               width,
               height,
             }}
-            onMouseDown={() => setSelectedObjectId(null)}
+            onMouseDown={(event) => {
+              // Clear selection only when the click did not land on a canvas
+              // object (objects handle their own selection). This lets the
+              // mousedown from an object bubble here without deselecting it.
+              const target = event.target as HTMLElement
+              if (!target.closest(".canvas-object")) {
+                setSelectedObjectId(null)
+              }
+            }}
           >
             {children}
           </div>

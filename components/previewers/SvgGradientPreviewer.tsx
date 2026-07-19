@@ -15,7 +15,7 @@ const SvgGradientPreviewer: React.FC<Props> = ({
   height = 300,
   className
 }) => {
-  const { pathsIndex, fills, blur, backgroundColor, offsetX, offsetY } =
+  const { pathsIndex, fills, blur, grain, backgroundColor, offsetX, offsetY } =
     useSvgGradientStore()
 
   const svgData = svgPaths[pathsIndex]
@@ -28,7 +28,8 @@ const SvgGradientPreviewer: React.FC<Props> = ({
         width,
         height,
         background: backgroundColor,
-        overflow: "hidden"
+        overflow: "hidden",
+        position: "relative"
       }}
     >
       <svg
@@ -41,10 +42,10 @@ const SvgGradientPreviewer: React.FC<Props> = ({
         <defs>
           <filter
             id="blurFilter"
-            x="-50%"
-            y="-50%"
-            width="200%"
-            height="200%"
+            x="-200%"
+            y="-200%"
+            width="500%"
+            height="500%"
           >
             <feGaussianBlur stdDeviation={blur} />
           </filter>
@@ -67,6 +68,32 @@ const SvgGradientPreviewer: React.FC<Props> = ({
           })}
         </g>
       </svg>
+
+      {grain > 0 && (
+        <svg
+          width={width}
+          height={height}
+          xmlns="http://www.w3.org/2000/svg"
+          style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            mixBlendMode: "overlay",
+            opacity: grain / 100
+          }}
+        >
+          <filter id="grainFilter">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.8"
+              numOctaves={2}
+              stitchTiles="stitch"
+            />
+            <feColorMatrix type="saturate" values="0" />
+          </filter>
+          <rect width="100%" height="100%" filter="url(#grainFilter)" />
+        </svg>
+      )}
     </div>
   )
 }

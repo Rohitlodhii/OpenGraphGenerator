@@ -1,0 +1,145 @@
+{
+  "id": "c6f8be82-aa6b-4f52-81b6-027f7e5bc8e9",
+  "name": "Lovable",
+  "createdAt": "2026-07-18T11:45:42.967Z",
+  "dimensions": {
+    "width": 1200,
+    "height": 630
+  },
+  "payload": {
+    "background": {
+      "backgroundColor": "#111111",
+      "backgroundType": "Svg Gradient"
+    },
+    "solidColor": {
+      "color": "#000000",
+      "blur": 0,
+      "grain": 0.46
+    },
+    "mesh": {
+      "baseColor": "#0f172a",
+      "blobs": [
+        {
+          "x": 0.3326442585107786,
+          "y": 0.3445420506915261,
+          "radius": 463.7478047379069,
+          "color": "#0091ff",
+          "opacity": 1,
+          "visible": true
+        },
+        {
+          "x": 0.23559850926832304,
+          "y": 0.49985914303302825,
+          "radius": 590.2420072058587,
+          "color": "#4dd091",
+          "opacity": 1,
+          "visible": true
+        },
+        {
+          "x": 0.38235501406132566,
+          "y": 0.8412039205298993,
+          "radius": 523.58517698182,
+          "color": "#002b50",
+          "opacity": 1,
+          "visible": true
+        }
+      ],
+      "blur": 150,
+      "grain": 0.1
+    },
+    "image": {
+      "src": null,
+      "blur": 0,
+      "grain": 0,
+      "saturation": 1,
+      "contrast": 1,
+      "brightness": 1
+    },
+    "svgGradient": {
+      "pathsIndex": 2,
+      "visible": true,
+      "fills": [
+        "#0022FF",
+        "#FEECFA",
+        "#FF7EE3",
+        "#FF32D3",
+        "#FF00C8"
+      ],
+      "blur": 120,
+      "backgroundColor": "#000000",
+      "offsetX": 3,
+      "offsetY": 90
+    },
+    "canvas": {
+      "objects": [
+        {
+          "id": "2e2647bc-e9ed-43b8-90f5-995e8d2f476a",
+          "type": "shape",
+          "shapeType": "triangle",
+          "fill": "#ffffff",
+          "shapeOpacity": 100,
+          "blur": 0,
+          "shapeShadow": 0,
+          "x": 398.57142857142884,
+          "y": 191.42857142857162,
+          "width": 74.28571428571428,
+          "height": 70,
+          "zIndex": 2
+        },
+        {
+          "id": "1accfe3a-779f-4697-84a1-491a7cd5176a",
+          "type": "text",
+          "content": "Lovable",
+          "x": 504.85714285714306,
+          "y": 173.42857142857127,
+          "width": 360,
+          "height": 90,
+          "zIndex": 3,
+          "fontSize": 77,
+          "fontFamily": "Poppins, sans-serif",
+          "fontWeight": 700,
+          "lineHeight": 1.2,
+          "letterSpacing": 0,
+          "fontOpacity": 100,
+          "fontStyle": "normal",
+          "textDecoration": "none",
+          "textAlign": "left",
+          "textIndent": 0,
+          "textColor": "#ffffff",
+          "textShadow": 0,
+          "textShadowColor": "#000000"
+        },
+        {
+          "id": "d2a28730-22bf-41f1-8965-fee30d11011a",
+          "type": "shape",
+          "shapeType": "rectangle",
+          "fill": "#151010",
+          "shapeOpacity": 100,
+          "blur": 0,
+          "shapeShadow": 0,
+          "x": 197.142857142857,
+          "y": 391.4285714285717,
+          "width": 818.5714285714286,
+          "height": 357.14285714285717,
+          "zIndex": 4
+        },
+        {
+          "id": "1d42ddb8-5ef6-4592-874d-29a745263c6a",
+          "type": "pattern",
+          "x": 0,
+          "y": 0,
+          "patternType": "grid",
+          "patternColor": "#ffffff",
+          "patternScale": 15,
+          "patternOpacity": 16,
+          "zIndex": 1
+        }
+      ],
+      "selectedObjectId": "1d42ddb8-5ef6-4592-874d-29a745263c6a"
+    },
+    "dimensions": {
+      "width": 1200,
+      "height": 630
+    }
+  }
+}

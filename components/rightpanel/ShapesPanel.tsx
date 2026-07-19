@@ -1,8 +1,7 @@
 "use client"
 
-import React, { useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import {
-  ChevronsLeftRight,
   Circle,
   GripVertical,
   Layers,
@@ -16,10 +15,8 @@ import {
 } from "lucide-react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
-import { Label } from "../ui/label"
-import { Slider } from "../ui/slider"
 import ColorPopup from "../helpers/colorpopup"
-import { useSliderWithInput } from "@/hooks/use-slider-with-input"
+import SliderWithInput from "../helpers/SliderWithInput"
 import { CanvasObject, CanvasShapeType, useCanvasStore } from "@/store/canvasstore"
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "../ui/accordion"
 
@@ -55,7 +52,9 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
   const [activeShape, setActiveShape] = useState<CanvasShapeType>("rectangle")
   const [fillColor, setFillColor] = useState("#ffffff")
   const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [openItems, setOpenItems] = useState<string[]>([])
   const { objects, addObject, updateObject, removeObject } = useCanvasStore()
+  const selectedObjectId = useCanvasStore((state) => state.selectedObjectId)
 
   const shapeObjects = useMemo(
     () =>
@@ -64,6 +63,14 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
         .sort((a, b) => (b.zIndex ?? 0) - (a.zIndex ?? 0)),
     [objects],
   )
+
+  // When a shape is selected on the canvas, expand its accordion panel.
+  useEffect(() => {
+    if (!selectedObjectId) return
+    const isShape = shapeObjects.some((shape) => shape.id === selectedObjectId)
+    if (!isShape) return
+    setOpenItems((prev) => (prev.includes(selectedObjectId) ? prev : [...prev, selectedObjectId]))
+  }, [selectedObjectId, shapeObjects])
 
   const handleAddShape = () => {
     const defaults = shapeDefaults[activeShape]
@@ -145,8 +152,8 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
     <div
       className={
         chromeless
-          ? "flex w-full flex-col"
-          : "border border-border flex flex-col rounded-xl items-center overflow-hidden"
+          ? "flex w-full flex-col "
+          : "border border-border flex flex-col rounded-xl items-center overflow-hidden "
       }
     >
       {!chromeless && (
@@ -205,16 +212,16 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
           </Button>
 
           {shapeObjects.length > 0 && (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 ">
               <span className="text-xs text-muted-foreground font-medium">
                 Shape Layers (drag to reorder)
               </span>
-              <Accordion>
+              <Accordion value={openItems} onValueChange={(value) => setOpenItems(value as string[])}>
                 {shapeObjects.map((shape) => (
                 <AccordionItem
                   key={shape.id}
                   value={shape.id}
-                  className="border border-border rounded-md bg-card overflow-hidden"
+                  className="border border-border rounded-md my-1 bg-card overflow-hidden"
                 >
                   <AccordionTrigger
                     draggable
@@ -472,90 +479,6 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
             </div>
           )}
         </div>
-      </div>
-    </div>
-  )
-}
-
-function SliderWithInput({
-  minValue,
-  maxValue,
-  initialValue,
-  defaultValue,
-  label,
-  onChange,
-  step = 1,
-}: {
-  minValue: number
-  maxValue: number
-  initialValue: number[]
-  defaultValue: number[]
-  label: string
-  onChange?: (value: number[]) => void
-  step?: number
-}) {
-  const {
-    sliderValue,
-    inputValues,
-    validateAndUpdateValue,
-    handleInputChange,
-    handleSliderChange,
-  } = useSliderWithInput({ defaultValue, initialValue, maxValue, minValue })
-
-  const handleChange = React.useCallback(
-    (newVals: number[]) => {
-      handleSliderChange(newVals)
-      if (onChange) onChange(newVals)
-    },
-    [handleSliderChange, onChange],
-  )
-
-  const commitInputValue = React.useCallback(() => {
-    const rawValue = inputValues[0]
-    validateAndUpdateValue(rawValue, 0)
-    if (!onChange) return
-    if (rawValue === "" || rawValue === "-") {
-      onChange([minValue])
-      return
-    }
-    const parsed = Number.parseFloat(rawValue)
-    if (Number.isNaN(parsed)) {
-      onChange(sliderValue)
-      return
-    }
-    onChange([Math.max(minValue, Math.min(maxValue, parsed))])
-  }, [inputValues, maxValue, minValue, onChange, sliderValue, validateAndUpdateValue])
-
-  return (
-    <div className="flex items-center gap-2 ring-1 ring-primary/10 px-2 py-0.5 rounded-lg bg-secondary">
-      <span className="text-muted-foreground text-xs">
-        <ChevronsLeftRight className="h-4 w-5" />
-      </span>
-      <Slider
-        aria-label={label}
-        className="grow [&>:last-child>span]:rounded"
-        max={maxValue}
-        min={minValue}
-        step={step}
-        onValueChange={handleChange}
-        value={sliderValue}
-      />
-      <div className="flex items-center justify-center">
-        <Input
-          aria-label={`Enter ${label}`}
-          className="h-7 w-10 px-0 py-0 text-sm text-center outline-none border-none shadow-none ring-0 focus-visible:ring-0"
-          inputMode="decimal"
-          onBlur={commitInputValue}
-          onChange={(e) => handleInputChange(e, 0)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              commitInputValue()
-            }
-          }}
-          type="text"
-          value={inputValues[0]}
-        />
-        <Label className="text-muted-foreground text-xs font-mono">{`[${label}]`}</Label>
       </div>
     </div>
   )
