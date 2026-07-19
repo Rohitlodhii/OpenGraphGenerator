@@ -5,9 +5,13 @@ import LayersSidebar from '../leftpanel/LayersSidebar'
 import { Sidebar, SidebarProvider } from '../ui/sidebar'
 import Previewer from './Previewer'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useHistoryManager } from '@/hooks/use-history'
+import { useHistoryShortcuts } from '@/hooks/use-history-shortcuts'
 
 const Workspace = () => {
   const isMobile = useIsMobile()
+  useHistoryManager()
+  useHistoryShortcuts()
 
   return (
     <SidebarProvider>

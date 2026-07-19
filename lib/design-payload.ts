@@ -5,11 +5,12 @@ import { useImageStore } from "@/store/imagestore"
 import { useMeshStore } from "@/store/meshstore"
 import { useSolidColorStore } from "@/store/solidcolorstore"
 import useSvgGradientStore from "@/store/svggradientstore"
+import { useGradientStore } from "@/store/gradientstore"
 
 export type DesignPayload = {
   background: {
     backgroundColor: string
-    backgroundType: "solid" | "mesh" | "image" | "Svg Gradient"
+    backgroundType: "solid" | "mesh" | "image" | "Svg Gradient" | "gradient"
   }
   solidColor: {
     color: string
@@ -46,6 +47,9 @@ export type DesignPayload = {
     offsetX: number
     offsetY: number
   }
+  gradient: {
+    appliedGradientId: string | null
+  }
   canvas: {
     objects: ReturnType<typeof useCanvasStore.getState>["objects"]
     selectedObjectId: string | null
@@ -63,6 +67,7 @@ export const buildPayload = (): DesignPayload => {
   const mesh = useMeshStore.getState()
   const image = useImageStore.getState()
   const svg = useSvgGradientStore.getState()
+  const gradient = useGradientStore.getState()
   const canvas = useCanvasStore.getState()
   const dims = useDimensionStore.getState()
 
@@ -98,6 +103,9 @@ export const buildPayload = (): DesignPayload => {
       backgroundColor: svg.backgroundColor,
       offsetX: svg.offsetX,
       offsetY: svg.offsetY,
+    },
+    gradient: {
+      appliedGradientId: gradient.appliedGradientId,
     },
     canvas: {
       objects: canvas.objects.map((object) => ({ ...object })),
@@ -147,6 +155,10 @@ export const applyPayload = (payload: DesignPayload) => {
     backgroundColor: payload.svgGradient.backgroundColor,
     offsetX: payload.svgGradient.offsetX,
     offsetY: payload.svgGradient.offsetY,
+  })
+
+  useGradientStore.setState({
+    appliedGradientId: payload.gradient?.appliedGradientId ?? null,
   })
 
   useCanvasStore.setState({

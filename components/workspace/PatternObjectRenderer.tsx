@@ -115,3 +115,8 @@ const PatternObjectRenderer: React.FC<PatternObjectRendererProps> = ({ object, o
 }
 
 export default PatternObjectRenderer
+
+
+
+
+

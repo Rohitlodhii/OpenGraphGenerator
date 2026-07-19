@@ -516,7 +516,7 @@ function SidebarMenuButton({
   ...props
 }: useRender.ComponentProps<"button"> & {
   isActive?: boolean;
-  tooltip?: string | React.ComponentProps<typeof TooltipPopup>;
+  tooltip?: string | React.ComponentProps<typeof TooltipContent>;
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
   const { isMobile, state } = useSidebar();
 
@@ -548,9 +548,7 @@ function SidebarMenuButton({
 
   return (
     <Tooltip>
-      <TooltipTrigger
-        render={buttonElement as React.ReactElement<Record<string, unknown>>}
-      />
+      <TooltipTrigger asChild>{buttonElement}</TooltipTrigger>
       <TooltipContent
         align="center"
         hidden={state !== "collapsed" || isMobile}

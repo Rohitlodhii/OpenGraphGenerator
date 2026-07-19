@@ -270,7 +270,7 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
                             <span className="text-xs font-medium text-muted-foreground">Blend Mode</span>
                             <Select
                               value={image.imageBlendMode ?? "normal"}
-                              onValueChange={(value) => updateObject(image.id, { imageBlendMode: value })}
+                              onValueChange={(value) => updateObject(image.id, { imageBlendMode: value || undefined })}
                             >
                               <SelectTrigger className="h-8 text-xs">
                                 <SelectValue />
@@ -296,7 +296,6 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
                           initialValue={[image.imageBlur ?? 0]}
                           label="Blur"
                           maxValue={100}
-                          inputMaxValue={1000}
                           minValue={0}
                           step={1}
                           onChange={(vals) => updateObject(image.id, { imageBlur: vals[0] })}

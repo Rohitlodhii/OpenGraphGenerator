@@ -5,6 +5,9 @@ import Draggable, { DraggableData, DraggableEvent } from "react-draggable"
 import { CanvasObject, useCanvasStore } from "@/store/canvasstore"
 import TextPreviewer from "../previewers/TextPreviewer"
 import ImageObjectPreviewer from "../previewers/ImageObjectPreviewer"
+import BlobObjectPreviewer from "../previewers/BlobObjectPreviewer"
+import MotifObjectPreviewer from "../previewers/MotifObjectPreviewer"
+import ImportedSvgPreviewer from "../previewers/ImportedSvgPreviewer"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -130,6 +133,24 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
 
     if (object.type === "image") {
       return <ImageObjectPreviewer object={object} style={contentStyle} />
+    }
+
+    if (object.type === "blob") {
+      // The blob previewer applies its own blur internally, so hand it a style
+      // without the outer CSS blur to avoid doubling it.
+      const blobStyle: React.CSSProperties = { ...contentStyle, filter: undefined }
+      return <BlobObjectPreviewer object={object} style={blobStyle} />
+    }
+
+    if (object.type === "motif") {
+      // The motif previewer applies its own blur internally, so hand it a style
+      // without the outer CSS blur to avoid doubling it.
+      const motifStyle: React.CSSProperties = { ...contentStyle, filter: undefined }
+      return <MotifObjectPreviewer object={object} style={motifStyle} />
+    }
+
+    if (object.type === "importedSvg") {
+      return <ImportedSvgPreviewer object={object} style={contentStyle} />
     }
 
     if (object.type === "shape") {

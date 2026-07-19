@@ -1,6 +1,7 @@
 import { create } from "zustand"
+import type { SvgNode, DefEntry } from "@/lib/svg-import"
 
-export type CanvasObjectType = "text" | "image" | "svg" | "pattern"
+export type CanvasObjectType = "text" | "image" | "svg" | "pattern" | "blob" | "motif" | "importedSvg"
 export type CanvasShapeType = "circle" | "rectangle" | "triangle" | "square"
 export type CanvasTextAlign = "left" | "center" | "right" | "justify"
 export type CanvasPatternType =
@@ -57,6 +58,16 @@ export interface CanvasObject {
   imageStrokeColor?: string
   imageStrokeWidth?: number
   imageBorderRadius?: number
+  // Blob fields
+  blobId?: string
+  blobGrain?: number
+  // Motif fields
+  motifId?: string
+  motifGrain?: number
+  // Imported-SVG fields
+  svgTree?: SvgNode
+  svgViewBox?: { x: number; y: number; width: number; height: number } | null
+  svgDefs?: Record<string, DefEntry>
 }
 
 interface CanvasState {

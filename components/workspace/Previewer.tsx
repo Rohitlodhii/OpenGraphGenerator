@@ -7,53 +7,21 @@ import useDimensionStore from "@/hooks/dimension"
 import Stage from "./Stage"
 import BackgroundRenderer from "./BackgroundRenderer"
 import ObjectsLayer from "./ObjectsLayer"
-import { toPng } from "html-to-image"
-import { useCanvasStore } from "@/store/canvasstore"
+import ExportDialog from "./ExportDialog"
 
 const Previewer = () => {
   const [zoom, setZoom] = useState(70)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [isExporting, setIsExporting] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
 
   const width = useDimensionStore((s) => s.width)
   const height = useDimensionStore((s) => s.height)
-  const selectedObjectId = useCanvasStore((s) => s.selectedObjectId)
-  const setSelectedObjectId = useCanvasStore((s) => s.setSelectedObjectId)
 
   const zoomIn = () => setZoom((z) => Math.min(z + 10, 200))
   const zoomOut = () => setZoom((z) => Math.max(z - 10, 25))
   const resetZoom = () => setZoom(100)
 
   const toggleFullscreen = () => setIsFullscreen((p) => !p)
-
-  const handleExportImage = async () => {
-    const stage = document.querySelector(".canvas-stage") as HTMLElement | null
-    if (!stage || isExporting) return
-
-    const previousSelected = selectedObjectId
-    try {
-      setIsExporting(true)
-      setSelectedObjectId(null)
-
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
-
-      const dataUrl = await toPng(stage, {
-        cacheBust: true,
-        pixelRatio: 2,
-      })
-
-      const link = document.createElement("a")
-      link.href = dataUrl
-      link.download = `preview-${new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-")}.png`
-      link.click()
-    } catch (error) {
-      console.error("Failed to export preview image:", error)
-    } finally {
-      setIsExporting(false)
-      setSelectedObjectId(previousSelected)
-    }
-  }
 
   return (
     <div className="w-full h-full flex flex-col bg-pattern relative">
@@ -93,12 +61,14 @@ const Previewer = () => {
 
         <div className="w-px h-5 bg-border mx-1"></div>
 
-        <Button onClick={handleExportImage} disabled={isExporting} variant="ghost" size="sm" className="text-xs">
+        <Button onClick={() => setExportOpen(true)} variant="ghost" size="sm" className="text-xs">
           <Download className="w-4 h-4" />
-          {isExporting ? "Exporting..." : "Export"}
+          Export
         </Button>
 
       </div>
+
+      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
 
     </div>
   )
