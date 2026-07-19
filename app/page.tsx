@@ -2,18 +2,22 @@
 
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    authClient.useSession().then((session) => {
-      if (session.data) {
-        router.push("/dashboard");
-      }
-    });
-  }, [router]);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !isPending && session) {
+      router.push("/dashboard");
+    }
+  }, [mounted, isPending, session, router]);
 
   const handleGithubSignIn = async () => {
     await authClient.signIn.social({
@@ -21,6 +25,10 @@ export default function Home() {
       callbackURL: "/dashboard",
     });
   };
+
+  if (!mounted || isPending) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
