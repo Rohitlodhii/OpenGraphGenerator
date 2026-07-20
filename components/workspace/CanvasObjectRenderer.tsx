@@ -8,6 +8,8 @@ import ImageObjectPreviewer from "../previewers/ImageObjectPreviewer"
 import BlobObjectPreviewer from "../previewers/BlobObjectPreviewer"
 import MotifObjectPreviewer from "../previewers/MotifObjectPreviewer"
 import ImportedSvgPreviewer from "../previewers/ImportedSvgPreviewer"
+import MockupObjectPreviewer from "../previewers/MockupObjectPreviewer"
+import AsciiObjectPreviewer from "../previewers/AsciiObjectPreviewer"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -20,8 +22,11 @@ import {
   ArrowUpToLine,
   ArrowDown,
   ArrowDownToLine,
+  ImageDown,
   Trash2,
 } from "lucide-react"
+import { useBackgroundStore } from "@/store/backgroundstore"
+import { useImageStore } from "@/store/imagestore"
 
 type CanvasObjectRendererProps = {
   object: CanvasObject
@@ -39,6 +44,8 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
   const sendToBack = useCanvasStore((state) => state.sendToBack)
   const selectedObjectId = useCanvasStore((state) => state.selectedObjectId)
   const setSelectedObjectId = useCanvasStore((state) => state.setSelectedObjectId)
+  const setBackgroundSrc = useImageStore((state) => state.setSrc)
+  const setBackgroundType = useBackgroundStore((state) => state.setBackgroundType)
   const [isResizing, setIsResizing] = useState(false)
   const [isEditingText, setIsEditingText] = useState(false)
   const isTextEditing = isEditingText && selectedObjectId === object.id
@@ -51,6 +58,15 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
 
   const handleDrag = (_event: DraggableEvent, data: DraggableData) => {
     updateObject(object.id, { x: data.x, y: data.y })
+  }
+
+  // Promote this image to the canvas background (via the image background store)
+  // and remove it as a floating object so it doesn't sit on top of itself.
+  const setAsBackground = () => {
+    if (object.type !== "image" || !object.src) return
+    setBackgroundSrc(object.src)
+    setBackgroundType("image")
+    removeObject(object.id)
   }
 
   const handleResizeMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -176,6 +192,14 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
 
     if (object.type === "importedSvg") {
       return <ImportedSvgPreviewer object={object} style={contentStyle} />
+    }
+
+    if (object.type === "mockup") {
+      return <MockupObjectPreviewer object={object} style={contentStyle} />
+    }
+
+    if (object.type === "ascii") {
+      return <AsciiObjectPreviewer object={object} style={contentStyle} />
     }
 
     if (object.type === "shape") {
@@ -385,6 +409,12 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
           Send to back
         </ContextMenuItem>
         <ContextMenuSeparator />
+        {object.type === "image" && object.src && (
+          <ContextMenuItem onClick={setAsBackground}>
+            <ImageDown />
+            Set as background
+          </ContextMenuItem>
+        )}
         <ContextMenuItem
           variant="destructive"
           onClick={() => removeObject(object.id)}

@@ -6,8 +6,9 @@ import {
   Palette,
   Proportions,
   Shapes,
-  Sparkles,
+  Smartphone,
   Type,
+  Wrench,
 } from "lucide-react"
 import TemplateList from "./TemplateList"
 import { DimensionControls } from "../rightpanel/DimensionControls"
@@ -16,7 +17,8 @@ import ShapesPanel from "../rightpanel/ShapesPanel"
 import PatternsPanel from "../rightpanel/PatternsPanel"
 import TextAddingPanel from "../rightpanel/TextAddingPanel"
 import ImageAddingPanel from "../rightpanel/ImageAddingPanel"
-import IllustrationsPanel from "../rightpanel/IllustrationsPanel"
+import MockupsPanel from "../rightpanel/MockupsPanel"
+import ToolsPanel from "../rightpanel/ToolsPanel"
 
 export type LeftTab =
   | "templates"
@@ -26,7 +28,8 @@ export type LeftTab =
   | "shapes"
   | "text"
   | "images"
-  | "illustrations"
+  | "mockups"
+  | "tools"
 
 export const tabs: { id: LeftTab; label: string; icon: React.ElementType }[] = [
   { id: "templates", label: "Templates", icon: LayoutTemplate },
@@ -36,7 +39,8 @@ export const tabs: { id: LeftTab; label: string; icon: React.ElementType }[] = [
   { id: "shapes", label: "Shapes", icon: Shapes },
   { id: "text", label: "Text", icon: Type },
   { id: "images", label: "Images", icon: ImageIcon },
-  { id: "illustrations", label: "Illustrations", icon: Sparkles },
+  { id: "mockups", label: "Mockups", icon: Smartphone },
+  { id: "tools", label: "Tools", icon: Wrench },
 ]
 
 export const tabTitles: Record<LeftTab, string> = {
@@ -47,7 +51,8 @@ export const tabTitles: Record<LeftTab, string> = {
   shapes: "Shapes",
   text: "Text",
   images: "Images",
-  illustrations: "Illustrations",
+  mockups: "Mockups",
+  tools: "Tools",
 }
 
 export const objectTypeToTab: Record<string, LeftTab> = {
@@ -55,6 +60,7 @@ export const objectTypeToTab: Record<string, LeftTab> = {
   image: "images",
   shape: "shapes",
   pattern: "patterns",
+  mockup: "mockups",
 }
 
 export const PanelContent = ({ tab }: { tab: LeftTab }) => {
@@ -73,8 +79,10 @@ export const PanelContent = ({ tab }: { tab: LeftTab }) => {
       return <TextAddingPanel chromeless />
     case "images":
       return <ImageAddingPanel chromeless />
-    case "illustrations":
-      return <IllustrationsPanel />
+    case "mockups":
+      return <MockupsPanel chromeless />
+    case "tools":
+      return <ToolsPanel />
     default:
       return null
   }

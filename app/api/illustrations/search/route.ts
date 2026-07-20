@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
+import { checkAndConsume, FREE_LIMIT } from "@/lib/tools-usage"
 
 export const runtime = "nodejs"
 
@@ -50,12 +52,28 @@ const normalizeHit = (
 // Proxies the getillustrations.com search endpoint, keeping the API key on the
 // server, and returns a normalized { illustrations } list.
 export async function GET(request: NextRequest) {
+  const session = await auth.api.getSession({ headers: request.headers })
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const query = request.nextUrl.searchParams.get("q")?.trim()
   if (!query) {
     return NextResponse.json({ illustrations: [] })
   }
 
-  const key = process.env.ILLUSTRATION_API_KEY
+  const limit = await checkAndConsume(session.user.id, "illustration")
+  if (!limit.ok) {
+    return NextResponse.json(
+      {
+        error: `You've used your ${FREE_LIMIT} free illustration searches. Add your own Illustration API key in Profile → Connectors to keep searching.`,
+        code: "LIMIT_REACHED",
+      },
+      { status: 402 },
+    )
+  }
+
+  const key = limit.ownKey ?? process.env.ILLUSTRATION_API_KEY
   if (!key) {
     return NextResponse.json(
       { error: "Illustration API key not configured" },
@@ -91,7 +109,7 @@ export async function GET(request: NextRequest) {
       .map((hit) => normalizeHit(hit as Record<string, unknown>, "illustration"))
       .filter((item): item is Illustration => item !== null)
 
-    return NextResponse.json({ illustrations })
+    return NextResponse.json({ illustrations, remaining: limit.remaining })
   } catch (error) {
     console.error("Illustration search failed:", error)
     return NextResponse.json(

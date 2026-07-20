@@ -25,6 +25,13 @@ model User {
   accounts      Account[]
   projects      Project[]
 
+  // Per-user free-tier usage for the Tools panel (5 searches per source).
+  illustrationSearchCount Int @default(0)
+  unsplashSearchCount     Int @default(0)
+  // Optional own API keys — when set, that source is unlimited for the user.
+  ownIllustrationApiKey String?
+  ownUnsplashAccessKey  String?
+
   @@unique([email])
   @@map("user")
 }

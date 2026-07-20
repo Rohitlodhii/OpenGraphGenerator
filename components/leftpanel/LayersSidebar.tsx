@@ -11,6 +11,7 @@ import {
   Image as ImageIcon,
   Layers,
   Shapes as ShapesIcon,
+  Smartphone,
   Trash2,
   Type,
   X,
@@ -22,6 +23,7 @@ import {
 } from "@/store/canvasstore"
 import { useLayersPanelStore } from "@/store/layerspanelstore"
 import { PATTERNS } from "@/lib/patterns"
+import { getMockup } from "@/components/mockups/registry"
 
 const typeIcon = (object: CanvasObject) => {
   switch (object.type) {
@@ -33,6 +35,8 @@ const typeIcon = (object: CanvasObject) => {
       return <Grid2x2 className="h-4 w-4" />
     case "shape":
       return <ShapesIcon className="h-4 w-4" />
+    case "mockup":
+      return <Smartphone className="h-4 w-4" />
     default:
       return <Layers className="h-4 w-4" />
   }
@@ -54,6 +58,8 @@ const layerLabel = (object: CanvasObject) => {
       return object.shapeType
         ? `${object.shapeType.charAt(0).toUpperCase()}${object.shapeType.slice(1)}`
         : "Shape"
+    case "mockup":
+      return getMockup(object.mockupId)?.name ?? "Mockup"
     default:
       return "Layer"
   }

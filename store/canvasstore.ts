@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import type { SvgNode, DefEntry } from "@/lib/svg-import"
 
-export type CanvasObjectType = "text" | "image" | "svg" | "pattern" | "blob" | "motif" | "importedSvg"
+export type CanvasObjectType = "text" | "image" | "svg" | "pattern" | "blob" | "motif" | "importedSvg" | "mockup" | "ascii"
 export type CanvasShapeType = "circle" | "rectangle" | "triangle" | "square"
 export type CanvasTextAlign = "left" | "center" | "right" | "justify"
 export type CanvasPatternType =
@@ -68,6 +68,21 @@ export interface CanvasObject {
   svgTree?: SvgNode
   svgViewBox?: { x: number; y: number; width: number; height: number } | null
   svgDefs?: Record<string, DefEntry>
+  // Mockup fields (device frames — iPhone, iPad, Mac, Safari). The embedded
+  // screenshot reuses `src`; the empty screen tint reuses `fill`.
+  mockupId?: string
+  mockupUrl?: string
+  mockupImageFit?: "cover" | "contain"
+  // ASCII-art fields. The source image reuses `src`; the rest configure the
+  // AsciiArt renderer (see components/ui/ascii-art.tsx).
+  asciiResolution?: number
+  asciiCharset?: string
+  asciiColor?: string
+  asciiBackgroundColor?: string
+  asciiInverted?: boolean
+  asciiColored?: boolean
+  asciiAnimationStyle?: "fade" | "typewriter" | "matrix" | "none"
+  asciiObjectFit?: "cover" | "contain" | "fill"
 }
 
 interface CanvasState {

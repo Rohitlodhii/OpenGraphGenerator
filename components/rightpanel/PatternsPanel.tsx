@@ -14,6 +14,9 @@ import {
   DEFAULT_PATTERN_SCALE,
   DEFAULT_PATTERN_OPACITY,
 } from "@/lib/patterns"
+import { patternBgs, PatternBgDef } from "@/data/pattern-bgs"
+import { ImportResult } from "@/lib/svg-import"
+import AdditionalPatternsDialog from "./AdditionalPatternsDialog"
 
 type PatternsPanelProps = {
   chromeless?: boolean
@@ -30,6 +33,7 @@ const PatternsPanel = ({ chromeless = false }: PatternsPanelProps) => {
   const { objects, addObject, updateObject, removeObject } = useCanvasStore()
   const [activePattern, setActivePattern] = React.useState<CanvasPatternType>("dots")
   const [color, setColor] = React.useState(DEFAULT_PATTERN_COLOR)
+  const [additionalOpen, setAdditionalOpen] = React.useState(false)
 
   const patternObjects = React.useMemo(
     () =>
@@ -50,6 +54,29 @@ const PatternsPanel = ({ chromeless = false }: PatternsPanelProps) => {
       patternColor: color,
       patternScale: DEFAULT_PATTERN_SCALE,
       patternOpacity: DEFAULT_PATTERN_OPACITY,
+      zIndex: maxZIndex + 1,
+    })
+  }
+
+  // Additional patterns are the SVGs in /public/patternbgs, parsed through the
+  // SVG import pipeline and dropped on the canvas as editable importedSvg objects.
+  const addAdditionalPattern = (_pattern: PatternBgDef, result: ImportResult) => {
+    const maxZIndex = objects.reduce((max, object) => Math.max(max, object.zIndex ?? 0), 0)
+    const vb = result.viewBox
+    const aspect = vb && vb.height > 0 ? vb.width / vb.height : 1
+    const width = 320
+    const height = Math.round(width / aspect)
+
+    addObject({
+      id: createId(),
+      type: "importedSvg",
+      svgTree: result.root ?? undefined,
+      svgViewBox: result.viewBox,
+      svgDefs: result.defs,
+      x: 40,
+      y: 40,
+      width,
+      height,
       zIndex: maxZIndex + 1,
     })
   }
@@ -99,6 +126,33 @@ const PatternsPanel = ({ chromeless = false }: PatternsPanelProps) => {
         Add Pattern
       </Button>
 
+      <div className="flex flex-col gap-2 pt-1">
+        <span className="text-xs font-medium text-muted-foreground">Additional patterns</span>
+        <button
+          type="button"
+          onClick={() => setAdditionalOpen(true)}
+          className="flex h-11 w-full items-center gap-3 rounded-md border border-border bg-secondary px-2 text-left transition hover:border-primary/50"
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-background/60 p-0.5">
+            {patternBgs[0] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={patternBgs[0].src}
+                alt=""
+                draggable={false}
+                className="h-full w-full object-contain"
+              />
+            ) : null}
+          </span>
+          <span className="flex flex-col">
+            <span className="text-xs font-medium">Additional Patterns</span>
+            <span className="text-[11px] text-muted-foreground">
+              Editable pattern backgrounds
+            </span>
+          </span>
+        </button>
+      </div>
+
       {patternObjects.length > 0 && (
         <div className="flex flex-col gap-2">
           <span className="text-xs font-medium text-muted-foreground">Pattern Layers</span>
@@ -114,6 +168,12 @@ const PatternsPanel = ({ chromeless = false }: PatternsPanelProps) => {
           </div>
         </div>
       )}
+
+      <AdditionalPatternsDialog
+        open={additionalOpen}
+        onOpenChange={setAdditionalOpen}
+        onUse={addAdditionalPattern}
+      />
     </div>
   )
 }

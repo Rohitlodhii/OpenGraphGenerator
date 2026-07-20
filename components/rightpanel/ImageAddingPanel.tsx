@@ -1,10 +1,12 @@
 "use client"
 
 import React, { useEffect, useMemo, useRef, useState } from "react"
-import { ImagePlus, Minus, Plus, Trash2, Upload } from "lucide-react"
+import { ImageDown, ImagePlus, Minus, Plus, Trash2, Upload } from "lucide-react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { useCanvasStore } from "@/store/canvasstore"
+import { useBackgroundStore } from "@/store/backgroundstore"
+import { useImageStore } from "@/store/imagestore"
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "../ui/accordion"
 import { Select, SelectTrigger, SelectValue, SelectPopup, SelectItem } from "../ui/select"
 import ColorPopup from "../helpers/colorpopup"
@@ -42,7 +44,18 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
   const expanded = chromeless ? true : isOpen
   const { objects, selectedObjectId, addObject, updateObject, removeObject, setSelectedObjectId } =
     useCanvasStore()
+  const setBackgroundSrc = useImageStore((state) => state.setSrc)
+  const setBackgroundType = useBackgroundStore((state) => state.setBackgroundType)
   const [openItems, setOpenItems] = useState<string[]>([])
+
+  // Promote an image layer to the canvas background and remove the floating
+  // object so it doesn't overlap the background it now provides.
+  const setImageAsBackground = (image: (typeof objects)[number]) => {
+    if (!image.src) return
+    setBackgroundSrc(image.src)
+    setBackgroundType("image")
+    removeObject(image.id)
+  }
 
   const imageObjects = useMemo(
     () =>
@@ -363,6 +376,16 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
                             </Button>
                           </div>
                         )}
+
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className={`${compactButton} mt-2`}
+                          onClick={() => setImageAsBackground(image)}
+                        >
+                          <ImageDown className="h-4 w-4" />
+                          Set as Background
+                        </Button>
 
                         <Button
                           size="sm"

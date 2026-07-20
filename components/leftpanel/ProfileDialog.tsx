@@ -1,11 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { UserIcon, SettingsIcon, FolderIcon, SunIcon, MoonIcon } from "lucide-react";
+import { UserIcon, SettingsIcon, FolderIcon, SunIcon, MoonIcon, PlugIcon, CheckIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogPopup } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  clearImgbbKey,
+  getImgbbKey,
+  setImgbbKey as saveImgbbKey,
+} from "@/lib/imgbb";
 
 type ProfileUser = {
   id: string;
@@ -15,11 +22,12 @@ type ProfileUser = {
   emailVerified?: boolean | null;
 };
 
-type TabId = "profile" | "settings" | "projects";
+type TabId = "profile" | "settings" | "connectors" | "projects";
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: "profile", label: "Profile", icon: UserIcon },
   { id: "settings", label: "Settings", icon: SettingsIcon },
+  { id: "connectors", label: "Connectors", icon: PlugIcon },
   { id: "projects", label: "Projects", icon: FolderIcon },
 ];
 
@@ -63,6 +71,237 @@ function ThemeToggle() {
         </>
       )}
     </button>
+  );
+}
+
+function ConnectorsPanel() {
+  const [keyInput, setKeyInput] = useState("");
+  const [connected, setConnected] = useState(false);
+
+  // Read the stored key only on the client to avoid hydration mismatch.
+  useEffect(() => {
+    setConnected(!!getImgbbKey());
+  }, []);
+
+  const handleSave = () => {
+    const trimmed = keyInput.trim();
+    if (!trimmed) return;
+    saveImgbbKey(trimmed);
+    setConnected(true);
+    setKeyInput("");
+  };
+
+  const handleRemove = () => {
+    clearImgbbKey();
+    setConnected(false);
+    setKeyInput("");
+  };
+
+  return (
+    <div>
+      <h2 className="font-heading text-xl font-semibold max-sm:text-lg">Connectors</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Connect services to unlock more.
+      </p>
+
+      <div className="mt-6 rounded-lg border p-4 max-sm:mt-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
+              <PlugIcon className="size-4" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">imgbb</p>
+              <p className="text-xs text-muted-foreground">
+                Upload exported images to the cloud.
+              </p>
+            </div>
+          </div>
+          {connected && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+              <CheckIcon className="size-3" />
+              Connected
+            </span>
+          )}
+        </div>
+
+        <p className="mt-4 text-xs text-muted-foreground">
+          Without a key you get 5 free cloud uploads. Add your own imgbb API key
+          for unlimited uploads on your account.{" "}
+          <a
+            href="https://api.imgbb.com/"
+            target="_blank"
+            rel="noreferrer"
+            className="underline hover:text-foreground"
+          >
+            Get a key
+          </a>
+        </p>
+
+        <div className="mt-3 flex gap-2 max-sm:flex-col">
+          <Input
+            type="password"
+            autoComplete="off"
+            placeholder={connected ? "Key saved — enter a new one to replace" : "imgbb API key"}
+            value={keyInput}
+            onChange={(e) => setKeyInput(e.target.value)}
+          />
+          <div className="flex gap-2">
+            <Button onClick={handleSave} disabled={!keyInput.trim()}>
+              Save
+            </Button>
+            {connected && (
+              <Button variant="outline" onClick={handleRemove}>
+                Remove
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <ApiKeyConnectorCard
+        source="illustration"
+        title="Illustration API"
+        description="Search illustrations in the Tools panel."
+        helpUrl="https://getillustrations.com/"
+      />
+      <ApiKeyConnectorCard
+        source="unsplash"
+        title="Unsplash"
+        description="Search Unsplash photos in the Tools panel."
+        helpUrl="https://unsplash.com/developers"
+      />
+    </div>
+  );
+}
+
+type ApiKeySource = "illustration" | "unsplash";
+
+// DB-backed connector card for the Tools panel search sources. Unlike imgbb
+// (localStorage), these keys are stored per-user on the server via
+// /api/user/api-keys, and the free-tier remaining count comes from the same
+// endpoint.
+function ApiKeyConnectorCard({
+  source,
+  title,
+  description,
+  helpUrl,
+}: {
+  source: ApiKeySource;
+  title: string;
+  description: string;
+  helpUrl: string;
+}) {
+  const [keyInput, setKeyInput] = useState("");
+  const [connected, setConnected] = useState(false);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/user/api-keys")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!active || !data?.[source]) return;
+        setConnected(Boolean(data[source].connected));
+        setRemaining(
+          typeof data[source].remaining === "number"
+            ? data[source].remaining
+            : null,
+        );
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [source]);
+
+  const persist = async (key: string | null) => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/user/api-keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source, key }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        setConnected(Boolean(data?.connected));
+        if (data?.connected) setRemaining(null);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSave = async () => {
+    const trimmed = keyInput.trim();
+    if (!trimmed) return;
+    await persist(trimmed);
+    setKeyInput("");
+  };
+
+  const handleRemove = async () => {
+    await persist(null);
+    setKeyInput("");
+  };
+
+  return (
+    <div className="mt-4 rounded-lg border p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
+            <PlugIcon className="size-4" />
+          </div>
+          <div>
+            <p className="text-sm font-medium">{title}</p>
+            <p className="text-xs text-muted-foreground">{description}</p>
+          </div>
+        </div>
+        {connected && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+            <CheckIcon className="size-3" />
+            Connected
+          </span>
+        )}
+      </div>
+
+      <p className="mt-4 text-xs text-muted-foreground">
+        {connected
+          ? "Using your own key — unlimited searches."
+          : `Without a key you get 5 free searches${
+              remaining !== null ? ` (${remaining} left)` : ""
+            }. Add your own key for unlimited searches.`}{" "}
+        <a
+          href={helpUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="underline hover:text-foreground"
+        >
+          Get a key
+        </a>
+      </p>
+
+      <div className="mt-3 flex gap-2 max-sm:flex-col">
+        <Input
+          type="password"
+          autoComplete="off"
+          placeholder={connected ? "Key saved — enter a new one to replace" : `${title} key`}
+          value={keyInput}
+          onChange={(e) => setKeyInput(e.target.value)}
+        />
+        <div className="flex gap-2">
+          <Button onClick={handleSave} disabled={!keyInput.trim() || saving}>
+            Save
+          </Button>
+          {connected && (
+            <Button variant="outline" onClick={handleRemove} disabled={saving}>
+              Remove
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -191,6 +430,8 @@ export function ProfileDialog({
                 </div>
               </div>
             )}
+
+            {activeTab === "connectors" && <ConnectorsPanel />}
 
             {activeTab === "projects" && (
               <div>

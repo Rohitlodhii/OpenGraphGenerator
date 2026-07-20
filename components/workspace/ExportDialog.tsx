@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { Download } from "lucide-react"
+import { Cloud, Download } from "lucide-react"
 import {
   Dialog,
   DialogPopup,
@@ -17,6 +17,13 @@ import { Slider } from "@/components/ui/slider"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { toPng, toJpeg, toSvg } from "html-to-image"
 import { useCanvasStore } from "@/store/canvasstore"
+import {
+  FREE_LIMIT,
+  FreeLimitReachedError,
+  freeUploadsRemaining,
+  hasImgbbKey,
+  uploadToImgbb,
+} from "@/lib/imgbb"
 
 type Format = "png" | "jpeg" | "svg"
 
@@ -32,37 +39,59 @@ const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [quality, setQuality] = React.useState(92)
   const [scale, setScale] = React.useState<number>(2)
   const [isExporting, setIsExporting] = React.useState(false)
+  const [isUploading, setIsUploading] = React.useState(false)
+  const [cloudStatus, setCloudStatus] = React.useState<string | null>(null)
+  const [remaining, setRemaining] = React.useState<number>(FREE_LIMIT)
 
   const selectedObjectId = useCanvasStore((s) => s.selectedObjectId)
   const setSelectedObjectId = useCanvasStore((s) => s.setSelectedObjectId)
 
   const isRaster = format !== "svg"
+  const ownKey = hasImgbbKey()
 
-  const handleExport = async () => {
+  // Refresh free-tier count whenever the dialog opens.
+  React.useEffect(() => {
+    if (open) {
+      setRemaining(freeUploadsRemaining())
+      setCloudStatus(null)
+    }
+  }, [open])
+
+  // Render the canvas to a dataURL in the current format. Temporarily clears
+  // the selection so handles don't appear in the output.
+  const renderDataUrl = async (): Promise<string | null> => {
     const stage = document.querySelector(".canvas-stage") as HTMLElement | null
-    if (!stage || isExporting) return
+    if (!stage) return null
 
     const previousSelected = selectedObjectId
+    setSelectedObjectId(null)
+    await new Promise<void>((r) => requestAnimationFrame(() => r()))
+    await new Promise<void>((r) => requestAnimationFrame(() => r()))
+
     try {
-      setIsExporting(true)
-      setSelectedObjectId(null)
-
-      await new Promise<void>((r) => requestAnimationFrame(() => r()))
-      await new Promise<void>((r) => requestAnimationFrame(() => r()))
-
-      let dataUrl: string
       if (format === "png") {
-        dataUrl = await toPng(stage, { cacheBust: true, pixelRatio: scale })
-      } else if (format === "jpeg") {
-        dataUrl = await toJpeg(stage, {
+        return await toPng(stage, { cacheBust: true, pixelRatio: scale })
+      }
+      if (format === "jpeg") {
+        return await toJpeg(stage, {
           cacheBust: true,
           pixelRatio: scale,
           quality: quality / 100,
           backgroundColor: "#ffffff",
         })
-      } else {
-        dataUrl = await toSvg(stage, { cacheBust: true })
       }
+      return await toSvg(stage, { cacheBust: true })
+    } finally {
+      setSelectedObjectId(previousSelected)
+    }
+  }
+
+  const handleExport = async () => {
+    if (isExporting) return
+    try {
+      setIsExporting(true)
+      const dataUrl = await renderDataUrl()
+      if (!dataUrl) return
 
       const stamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-")
       const link = document.createElement("a")
@@ -75,7 +104,53 @@ const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       console.error("Failed to export:", error)
     } finally {
       setIsExporting(false)
-      setSelectedObjectId(previousSelected)
+    }
+  }
+
+  const handleCloudUpload = async () => {
+    if (isUploading || isExporting) return
+    // imgbb only accepts raster; block SVG.
+    if (!isRaster) {
+      setCloudStatus("Cloud upload supports PNG or JPEG only.")
+      return
+    }
+    if (!ownKey && freeUploadsRemaining() <= 0) {
+      setCloudStatus(
+        `Free limit of ${FREE_LIMIT} reached. Add your imgbb key in Profile → Connectors.`,
+      )
+      return
+    }
+
+    try {
+      setIsUploading(true)
+      setCloudStatus("Uploading…")
+      const dataUrl = await renderDataUrl()
+      if (!dataUrl) {
+        setCloudStatus("Nothing to upload.")
+        return
+      }
+
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-")
+      const { url } = await uploadToImgbb(dataUrl, `preview-${stamp}`)
+
+      try {
+        await navigator.clipboard.writeText(url)
+        setCloudStatus("Uploaded — link copied to clipboard.")
+      } catch {
+        setCloudStatus(`Uploaded: ${url}`)
+      }
+      setRemaining(freeUploadsRemaining())
+    } catch (error) {
+      if (error instanceof FreeLimitReachedError) {
+        setCloudStatus(
+          `Free limit of ${FREE_LIMIT} reached. Add your imgbb key in Profile → Connectors.`,
+        )
+      } else {
+        console.error("Cloud upload failed:", error)
+        setCloudStatus("Upload failed. Try again.")
+      }
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -145,11 +220,30 @@ const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           )}
         </DialogPanel>
 
+        {(cloudStatus || (isRaster && !ownKey)) && (
+          <div className="px-6 text-sm text-muted-foreground">
+            {cloudStatus ?? (
+              <span className="tabular-nums">
+                {remaining} of {FREE_LIMIT} free cloud uploads left.
+              </span>
+            )}
+          </div>
+        )}
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleExport} disabled={isExporting} className="gap-2">
+          <Button
+            variant="outline"
+            onClick={handleCloudUpload}
+            disabled={isUploading || isExporting || !isRaster}
+            className="gap-2"
+          >
+            <Cloud className="h-4 w-4" />
+            {isUploading ? "Uploading..." : "Upload to cloud"}
+          </Button>
+          <Button onClick={handleExport} disabled={isExporting || isUploading} className="gap-2">
             <Download className="h-4 w-4" />
             {isExporting ? "Exporting..." : "Export"}
           </Button>

@@ -62,10 +62,6 @@ const PatternObjectRenderer: React.FC<PatternObjectRendererProps> = ({ object, o
           outline: isSelected ? "2px solid var(--primary)" : undefined,
           outlineOffset: -2,
         }}
-        onMouseDown={(event) => {
-          event.stopPropagation()
-          setSelectedObjectId(object.id)
-        }}
       />
       <ContextMenuContent>
         <ContextMenuItem
