@@ -37,7 +37,7 @@ export default function DashboardClient({ projectId }: Props) {
         : loadLocalProject(projectId);
       if (cancelled) return;
       if (result) {
-        setCurrent(projectId, result.name);
+        setCurrent(projectId, result.name, result.lastSavedAt);
       } else {
         clearCurrent();
         router.replace("/dashboard");

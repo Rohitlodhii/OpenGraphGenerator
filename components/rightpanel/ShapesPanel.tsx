@@ -723,6 +723,26 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                             minValue={0}
                             onChange={(vals) => updateObject(blob.id, { blobGrain: vals[0] })}
                           />
+
+                          <span className="mt-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                            Rotation
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 shrink-0 rounded-md border border-input bg-secondary flex items-center justify-center">
+                              <RotateCw className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <Input
+                              type="number"
+                              value={Math.round(blob.rotation ?? 0)}
+                              onChange={(event) => {
+                                const parsed = Number(event.target.value)
+                                if (Number.isNaN(parsed)) return
+                                updateObject(blob.id, { rotation: parsed })
+                              }}
+                              className={`${sizeInput} flex-1`}
+                            />
+                            <span className="text-xs text-muted-foreground shrink-0">deg</span>
+                          </div>
                         </div>
                       </AccordionPanel>
                     </AccordionItem>
@@ -772,6 +792,27 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
 
                       <AccordionPanel className="pb-0 border-t border-border">
                         <div className="flex flex-col gap-3 p-2">
+                          <div className="flex flex-col gap-1.5 border-b border-border/60 pb-2">
+                            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                              Rotation
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <div className="h-8 w-8 shrink-0 rounded-md border border-input bg-secondary flex items-center justify-center">
+                                <RotateCw className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              <Input
+                                type="number"
+                                value={Math.round(svg.rotation ?? 0)}
+                                onChange={(event) => {
+                                  const parsed = Number(event.target.value)
+                                  if (Number.isNaN(parsed)) return
+                                  updateObject(svg.id, { rotation: parsed })
+                                }}
+                                className={`${sizeInput} flex-1`}
+                              />
+                              <span className="text-xs text-muted-foreground shrink-0">deg</span>
+                            </div>
+                          </div>
                           {/* Deduplicated colors: identical fills/strokes share one
                               swatch, so editing recolors every matching part at once. */}
                           {colorGroups.length > 0 && (

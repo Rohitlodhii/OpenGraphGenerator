@@ -60,10 +60,10 @@ const SaveProjectDialog: React.FC<Props> = ({ open, onOpenChange, signedIn, onSa
           ? await updateDbProject(currentId, trimmed)
           : updateLocalProject(currentId, trimmed)
         if (!ok) throw new Error("missing")
-        setCurrent(currentId, trimmed)
+        setCurrent(currentId, trimmed, new Date().toISOString())
       } else {
         const id = signedIn ? await saveDbProject(trimmed) : saveLocalProject(trimmed).id
-        setCurrent(id, trimmed)
+        setCurrent(id, trimmed, new Date().toISOString())
         router.push(`/dashboard/${id}`)
       }
       onSaved?.()

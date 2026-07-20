@@ -12,6 +12,7 @@ export type ProjectSummary = {
   id: string
   name: string
   createdAt: string
+  updatedAt?: string
 }
 
 type LocalProject = ProjectSummary & {
@@ -51,10 +52,12 @@ const writeLocalMap = (map: LocalMap) => {
 
 export const saveLocalProject = (name: string): LocalProject => {
   const map = readLocalMap()
+  const now = new Date().toISOString()
   const project: LocalProject = {
     id: makeId(),
     name: name.trim(),
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
     data: buildPayload(),
   }
   map[project.id] = project
@@ -67,21 +70,26 @@ export const updateLocalProject = (id: string, name: string): boolean => {
   const map = readLocalMap()
   const existing = map[id]
   if (!existing) return false
-  map[id] = { ...existing, name: name.trim(), data: buildPayload() }
+  map[id] = {
+    ...existing,
+    name: name.trim(),
+    updatedAt: new Date().toISOString(),
+    data: buildPayload(),
+  }
   writeLocalMap(map)
   return true
 }
 
 export const listLocalProjects = (): ProjectSummary[] =>
   Object.values(readLocalMap())
-    .map(({ id, name, createdAt }) => ({ id, name, createdAt }))
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .map(({ id, name, createdAt, updatedAt }) => ({ id, name, createdAt, updatedAt }))
+    .sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt))
 
-export const loadLocalProject = (id: string): { name: string } | null => {
+export const loadLocalProject = (id: string): { name: string; lastSavedAt: string } | null => {
   const project = readLocalMap()[id]
   if (!project) return null
   applyPayload(project.data)
-  return { name: project.name }
+  return { name: project.name, lastSavedAt: project.updatedAt ?? project.createdAt }
 }
 
 export const deleteLocalProject = (id: string) => {
@@ -124,13 +132,15 @@ export const listDbProjects = async (): Promise<ProjectSummary[]> => {
   return projects
 }
 
-export const loadDbProject = async (id: string): Promise<{ name: string } | null> => {
+export const loadDbProject = async (id: string): Promise<{ name: string; lastSavedAt: string } | null> => {
   const res = await fetch(`/api/projects/${id}`)
   if (!res.ok) return null
-  const { project } = (await res.json()) as { project: { name: string; data: string } }
+  const { project } = (await res.json()) as {
+    project: { name: string; data: string; updatedAt: string; createdAt: string }
+  }
   const payload = JSON.parse(project.data) as DesignPayload
   applyPayload(payload)
-  return { name: project.name }
+  return { name: project.name, lastSavedAt: project.updatedAt ?? project.createdAt }
 }
 
 export const deleteDbProject = async (id: string): Promise<void> => {

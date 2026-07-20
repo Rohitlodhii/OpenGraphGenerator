@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
 
   const projects = await prisma.project.findMany({
     where: { userId: session.user.id },
-    select: { id: true, name: true, createdAt: true },
-    orderBy: { createdAt: "desc" },
+    select: { id: true, name: true, createdAt: true, updatedAt: true },
+    orderBy: { updatedAt: "desc" },
   })
 
   return NextResponse.json({ projects })
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
   const project = await prisma.project.create({
     data: { name, data, userId: session.user.id },
-    select: { id: true, name: true, createdAt: true },
+    select: { id: true, name: true, createdAt: true, updatedAt: true },
   })
 
   return NextResponse.json({ project })

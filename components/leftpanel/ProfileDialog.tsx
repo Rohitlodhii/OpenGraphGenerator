@@ -36,8 +36,11 @@ function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch — theme unknown until mounted
-  useEffect(() => setMounted(true), []);
+  // Avoid hydration mismatch; theme unknown until mounted.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   const isDark = theme === "dark";
 
@@ -83,12 +86,14 @@ export function ProfileDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogPopup className="max-w-3xl" bottomStickOnMobile={false}>
-        <div className="flex min-h-[26rem]">
-          {/* Left pane — tab navigation (30%) */}
-          <div className="w-[30%] shrink-0 border-r bg-muted/40 p-3 rounded-l-2xl">
+      <DialogPopup
+        className="max-w-3xl overflow-hidden max-sm:h-[min(42rem,calc(100dvh-2rem))] max-sm:max-w-[calc(100vw-1rem)]"
+        bottomStickOnMobile={false}
+      >
+        <div className="flex min-h-[26rem] max-sm:min-h-0 max-sm:flex-1 max-sm:flex-col">
+          <div className="w-[30%] shrink-0 rounded-l-2xl border-r bg-muted/40 p-3 max-sm:w-full max-sm:rounded-l-none max-sm:rounded-t-2xl max-sm:border-b max-sm:border-r-0 max-sm:p-4 max-sm:pb-3">
             <div className="flex items-center gap-3 p-2">
-              <Avatar className="size-10">
+              <Avatar className="size-10 shrink-0">
                 {user.image && <AvatarImage src={user.image} alt={user.name ?? ""} />}
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
@@ -102,7 +107,7 @@ export function ProfileDialog({
               </div>
             </div>
 
-            <nav className="mt-3 flex flex-col gap-1">
+            <nav className="mt-3 flex flex-col gap-1 max-sm:grid max-sm:grid-cols-3 max-sm:gap-2">
               {TABS.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
@@ -112,7 +117,7 @@ export function ProfileDialog({
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition outline-none",
+                      "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition outline-none max-sm:h-16 max-sm:flex-col max-sm:justify-center max-sm:gap-1 max-sm:px-2 max-sm:text-xs",
                       active
                         ? "bg-background font-medium text-foreground shadow-sm"
                         : "text-muted-foreground hover:bg-background/60 hover:text-foreground",
@@ -126,12 +131,11 @@ export function ProfileDialog({
             </nav>
           </div>
 
-          {/* Right pane — content */}
-          <div className="min-w-0 flex-1 overflow-y-auto p-6">
+          <div className="min-w-0 flex-1 overflow-y-auto p-6 max-sm:p-4">
             {activeTab === "profile" && (
               <div>
-                <div className="flex items-center gap-4">
-                  <Avatar className="size-16">
+                <div className="flex items-center gap-4 max-sm:gap-3">
+                  <Avatar className="size-16 shrink-0 max-sm:size-12">
                     {user.image && (
                       <AvatarImage src={user.image} alt={user.name ?? ""} />
                     )}
@@ -139,16 +143,16 @@ export function ProfileDialog({
                       {initials}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col">
-                    <h2 className="font-heading text-xl font-semibold leading-none">
+                  <div className="flex min-w-0 flex-col">
+                    <h2 className="truncate font-heading text-xl font-semibold leading-none max-sm:text-lg">
                       {user.name}
                     </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1 truncate text-sm text-muted-foreground">
                       {user.email}
                     </p>
                   </div>
                 </div>
-                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <div className="mt-6 grid gap-4 sm:grid-cols-2 max-sm:mt-4 max-sm:gap-3">
                   <Field label="Name" value={user.name} />
                   <Field label="Email" value={user.email} />
                   <Field
@@ -162,12 +166,12 @@ export function ProfileDialog({
 
             {activeTab === "settings" && (
               <div>
-                <h2 className="font-heading text-xl font-semibold">Settings</h2>
+                <h2 className="font-heading text-xl font-semibold max-sm:text-lg">Settings</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Manage your account preferences.
                 </p>
-                <div className="mt-6 flex flex-col gap-3">
-                  <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="mt-6 flex flex-col gap-3 max-sm:mt-4">
+                  <div className="flex items-center justify-between rounded-lg border p-4 max-sm:items-start">
                     <div>
                       <p className="text-sm font-medium">Email notifications</p>
                       <p className="text-xs text-muted-foreground">
@@ -175,7 +179,7 @@ export function ProfileDialog({
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="flex items-center justify-between gap-4 rounded-lg border p-4 max-sm:flex-col max-sm:items-start">
                     <div>
                       <p className="text-sm font-medium">Theme</p>
                       <p className="text-xs text-muted-foreground">
@@ -190,11 +194,11 @@ export function ProfileDialog({
 
             {activeTab === "projects" && (
               <div>
-                <h2 className="font-heading text-xl font-semibold">Projects</h2>
+                <h2 className="font-heading text-xl font-semibold max-sm:text-lg">Projects</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Your saved projects will appear here.
                 </p>
-                <div className="mt-6 rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+                <div className="mt-6 rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground max-sm:mt-4 max-sm:p-6">
                   No projects yet.
                 </div>
               </div>

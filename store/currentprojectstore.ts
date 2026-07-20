@@ -3,7 +3,9 @@ import { create } from "zustand"
 type CurrentProjectState = {
   id: string | null
   name: string | null
-  setCurrent: (id: string, name: string) => void
+  lastSavedAt: string | null
+  setCurrent: (id: string, name: string, lastSavedAt?: string | null) => void
+  markSaved: (lastSavedAt?: string) => void
   clear: () => void
 }
 
@@ -12,6 +14,8 @@ type CurrentProjectState = {
 export const useCurrentProjectStore = create<CurrentProjectState>((set) => ({
   id: null,
   name: null,
-  setCurrent: (id, name) => set({ id, name }),
-  clear: () => set({ id: null, name: null }),
+  lastSavedAt: null,
+  setCurrent: (id, name, lastSavedAt = null) => set({ id, name, lastSavedAt }),
+  markSaved: (lastSavedAt = new Date().toISOString()) => set({ lastSavedAt }),
+  clear: () => set({ id: null, name: null, lastSavedAt: null }),
 }))

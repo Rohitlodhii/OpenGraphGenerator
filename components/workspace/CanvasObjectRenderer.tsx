@@ -102,6 +102,31 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
     }
   }, [isResizing, object.id, object.shapeType, updateObject, zoom])
 
+  // Delete the selected element with Delete/Backspace. Ignored while editing
+  // text or when focus is in a form field (so typing in panel inputs is safe).
+  useEffect(() => {
+    if (selectedObjectId !== object.id || isTextEditing) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Delete" && event.key !== "Backspace") return
+      const target = event.target as HTMLElement | null
+      const tag = target?.tagName
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        target?.isContentEditable
+      ) {
+        return
+      }
+      event.preventDefault()
+      removeObject(object.id)
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [selectedObjectId, object.id, isTextEditing, removeObject])
+
   const contentStyle = useMemo<React.CSSProperties>(
     () => ({
       width: object.width,
@@ -296,6 +321,24 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
           >
             {renderObject()}
           </div>
+          {selectedObjectId === object.id && !isTextEditing && (
+            <button
+              type="button"
+              aria-label="Delete element"
+              className="absolute -right-2.5 -top-2.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-background bg-destructive text-white shadow-sm cursor-pointer"
+              onMouseDown={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+              }}
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                removeObject(object.id)
+              }}
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          )}
           {selectedObjectId === object.id && !isTextEditing && (
             <div
               className="absolute -right-1.5 -bottom-1.5 h-3 w-3 rounded-full border-2 border-background bg-primary shadow-sm cursor-se-resize"
