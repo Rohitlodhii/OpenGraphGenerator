@@ -23,9 +23,23 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  projects      Project[]
 
   @@unique([email])
   @@map("user")
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  data      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("project")
 }
 
 model Session {

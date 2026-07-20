@@ -1,8 +1,9 @@
 "use client"
 import LeftPanel from '../leftpanel/LeftPanel'
+import MobileToolbar from '../leftpanel/MobileToolbar'
 import Navbar from '../leftpanel/Navbar'
 import LayersSidebar from '../leftpanel/LayersSidebar'
-import { Sidebar, SidebarProvider } from '../ui/sidebar'
+import { SidebarProvider } from '../ui/sidebar'
 import Previewer from './Previewer'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useHistoryManager } from '@/hooks/use-history'
@@ -25,19 +26,15 @@ const Workspace = () => {
             <LeftPanel />
           </section>
 
-          {/* Mobile left sidebar */}
-          {isMobile && (
-            <Sidebar side="left" variant="sidebar" collapsible="offcanvas">
-              <LeftPanel />
-            </Sidebar>
-          )}
-
           {/* Middle Section - fills remaining width on desktop, full width on mobile */}
           <section className='relative w-full md:w-[74%] lg:w-[76%] h-full text-foreground overflow-hidden'>
             <div className='h-full w-full overflow-auto'>
               <Previewer />
             </div>
             <LayersSidebar />
+
+            {/* Mobile bottom menu + non-blocking bottom sheet */}
+            {isMobile && <MobileToolbar />}
           </section>
         </div>
       </div>

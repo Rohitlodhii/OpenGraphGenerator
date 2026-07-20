@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import { UserIcon, SettingsIcon, FolderIcon } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { UserIcon, SettingsIcon, FolderIcon, SunIcon, MoonIcon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogPopup } from "@/components/ui/dialog";
@@ -28,6 +29,37 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p className="mt-1 text-sm break-all">{value}</p>
     </div>
+  );
+}
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Avoid hydration mismatch — theme unknown until mounted
+  useEffect(() => setMounted(true), []);
+
+  const isDark = theme === "dark";
+
+  return (
+    <button
+      type="button"
+      aria-label="Toggle theme"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition hover:bg-muted"
+    >
+      {mounted && isDark ? (
+        <>
+          <MoonIcon className="size-4" />
+          Dark
+        </>
+      ) : (
+        <>
+          <SunIcon className="size-4" />
+          Light
+        </>
+      )}
+    </button>
   );
 }
 
@@ -150,6 +182,7 @@ export function ProfileDialog({
                         Choose your preferred appearance.
                       </p>
                     </div>
+                    <ThemeToggle />
                   </div>
                 </div>
               </div>

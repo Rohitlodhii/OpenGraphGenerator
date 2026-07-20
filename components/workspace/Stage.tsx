@@ -1,23 +1,33 @@
 "use client"
 
 import React, { useRef } from "react"
-import Draggable from "react-draggable"
+import Draggable, { DraggableData } from "react-draggable"
 import { useCanvasStore } from "@/store/canvasstore"
 
 type StageProps = {
   width: number
   height: number
   zoom: number
+  locked?: boolean
+  position?: { x: number; y: number }
+  onPositionChange?: (pos: { x: number; y: number }) => void
   children: React.ReactNode
 }
 
-const Stage: React.FC<StageProps> = ({ width, height, zoom, children }) => {
+const Stage: React.FC<StageProps> = ({ width, height, zoom, locked = false, position, onPositionChange, children }) => {
   const dragRef = useRef<HTMLDivElement>(null)
   const setSelectedObjectId = useCanvasStore((state) => state.setSelectedObjectId)
 
+  const draggableProps = position
+    ? {
+        position,
+        onDrag: (_e: unknown, data: DraggableData) => onPositionChange?.({ x: data.x, y: data.y }),
+      }
+    : { defaultPosition: { x: 0, y: 0 } }
+
   return (
-    <Draggable nodeRef={dragRef} defaultPosition={{ x: 0, y: 0 }} cancel=".canvas-object">
-      <div ref={dragRef} className="cursor-grab active:cursor-grabbing">
+    <Draggable nodeRef={dragRef} disabled={locked} cancel=".canvas-object" {...draggableProps}>
+      <div ref={dragRef} className={locked ? "" : "cursor-grab active:cursor-grabbing"}>
         <div
           style={{
             transform: `scale(${zoom / 100})`,

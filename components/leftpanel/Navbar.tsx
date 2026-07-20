@@ -1,12 +1,17 @@
 "use client"
 
-import React, { useState } from "react"
-import { Layers, Undo2, Redo2, UserIcon, LogOutIcon } from "lucide-react"
+import React, { useState, useCallback, useEffect, useRef } from "react"
+import { Layers, UserIcon, LogOutIcon, Download, Save, FolderOpen, LogInIcon, Loader2, Check } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import ExportDialog from "@/components/workspace/ExportDialog"
+import SaveProjectDialog from "@/components/workspace/SaveProjectDialog"
+import SavedProjectsDialog from "@/components/workspace/SavedProjectsDialog"
+import AuthDialog from "@/components/workspace/AuthDialog"
 import { useLayersPanelStore } from "@/store/layerspanelstore"
-import { useHistoryStore } from "@/store/historystore"
-import { undo, redo } from "@/hooks/use-history"
+import { useCurrentProjectStore } from "@/store/currentprojectstore"
+import { updateDbProject, updateLocalProject } from "@/lib/projects"
 import { authClient } from "@/lib/auth-client"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -23,15 +28,69 @@ const Navbar = () => {
   const router = useRouter()
   const toggleLayers = useLayersPanelStore((state) => state.toggle)
   const layersOpen = useLayersPanelStore((state) => state.open)
-  const canUndo = useHistoryStore((state) => state.past.length > 0)
-  const canRedo = useHistoryStore((state) => state.future.length > 0)
   const { data: session } = authClient.useSession()
+  const currentId = useCurrentProjectStore((s) => s.id)
+  const currentName = useCurrentProjectStore((s) => s.name)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
+  const [saveOpen, setSaveOpen] = useState(false)
+  const [savedOpen, setSavedOpen] = useState(false)
+  const [authOpen, setAuthOpen] = useState(false)
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle")
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleSignOut = async () => {
     await authClient.signOut()
     router.push("/")
   }
+
+  const signedIn = !!session?.user
+
+  // Quick-save: if project already named, overwrite it silently with a loading
+  // + success flash. If not yet named, fall back to the naming dialog.
+  const handleSave = useCallback(async () => {
+    if (!currentId || !currentName) {
+      setSaveOpen(true)
+      return
+    }
+    if (saveState === "saving") return
+    setSaveState("saving")
+    try {
+      const ok = signedIn
+        ? await updateDbProject(currentId, currentName)
+        : updateLocalProject(currentId, currentName)
+      // Project vanished (deleted elsewhere) — reopen dialog to re-create it.
+      if (!ok) {
+        setSaveState("idle")
+        setSaveOpen(true)
+        return
+      }
+      setSaveState("saved")
+      if (savedTimer.current) clearTimeout(savedTimer.current)
+      savedTimer.current = setTimeout(() => setSaveState("idle"), 1500)
+    } catch {
+      setSaveState("idle")
+      setSaveOpen(true)
+    }
+  }, [currentId, currentName, signedIn, saveState])
+
+  // Ctrl/Cmd+S saves without leaving the page.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault()
+        handleSave()
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [handleSave])
+
+  useEffect(() => {
+    return () => {
+      if (savedTimer.current) clearTimeout(savedTimer.current)
+    }
+  }, [])
 
   const user = session?.user
   const initials = (user?.name || user?.email || "?")
@@ -44,37 +103,57 @@ const Navbar = () => {
   return (
     <header className="w-full h-14 shrink-0 px-4 border-b border-border bg-sidebar text-sidebar-foreground flex items-center justify-between">
       <div className="flex gap-2 items-center">
-        <div className="h-9 w-9 aspect-square rounded-xl bg-amber-700" />
-        <div className="font-mono text-base tracking-wide">OPENGG</div>
+        <img src="/logo.png" alt="OPENGG" className="h-9 w-9 aspect-square rounded-xl object-cover" />
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
+        <Button
+          variant="outline"
+          size="icon"
+          className="md:hidden border-none outline-none ring-0 "
+          aria-label="Export"
+          onClick={() => setExportOpen(true)}
+        >
+          <Download className="h-4 w-4" />
+        </Button>
+
         <Button
           variant="outline"
           size="sm"
-          className="gap-2"
-          onClick={undo}
-          disabled={!canUndo}
-          aria-label="Undo"
-          title="Undo (Ctrl+Z)"
+          className={cn(
+            "gap-2 border-none outline-none ring-0 transition-colors duration-300",
+            saveState === "saved" &&
+              "bg-green-600 text-white hover:bg-green-600 hover:text-white",
+          )}
+          disabled={saveState === "saving"}
+          onClick={handleSave}
         >
-          <Undo2 className="h-4 w-4" />
+          {saveState === "saving" ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : saveState === "saved" ? (
+            <Check className="h-4 w-4" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
+          <span className="hidden sm:inline">
+            {saveState === "saving" ? "Saving..." : saveState === "saved" ? "Saved" : "Save"}
+          </span>
         </Button>
+
         <Button
           variant="outline"
+          className="border-none outline-none ring-0"
           size="sm"
-          className="gap-2"
-          onClick={redo}
-          disabled={!canRedo}
-          aria-label="Redo"
-          title="Redo (Ctrl+Y)"
+          aria-label="Saved projects"
+          onClick={() => setSavedOpen(true)}
         >
-          <Redo2 className="h-4 w-4" />
+          <FolderOpen className="h-3 w-3" />
         </Button>
+
         <Button
           variant={layersOpen ? "secondary" : "outline"}
           size="sm"
-          className="gap-2"
+          className="gap-2 border-none outline-none ring-0"
           aria-pressed={layersOpen}
           onClick={toggleLayers}
         >
@@ -110,6 +189,29 @@ const Navbar = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+
+        {!user && (
+          <DropdownMenu>
+            <DropdownMenuTrigger className="ml-1 rounded-full outline-none ring-offset-2 ring-offset-sidebar focus-visible:ring-2 focus-visible:ring-ring transition">
+              <Avatar className="size-9 cursor-pointer ring-2 ring-border">
+                <AvatarFallback>G</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="flex flex-col gap-0.5">
+                <span className="text-sm font-semibold">Guest</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  Unauthenticated
+                </span>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setAuthOpen(true)}>
+                <LogInIcon />
+                Sign in
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {user && (
@@ -119,6 +221,22 @@ const Navbar = () => {
           user={user}
         />
       )}
+
+      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
+
+      <SaveProjectDialog
+        open={saveOpen}
+        onOpenChange={setSaveOpen}
+        signedIn={!!user}
+      />
+
+      <SavedProjectsDialog
+        open={savedOpen}
+        onOpenChange={setSavedOpen}
+        signedIn={!!user}
+      />
+
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
     </header>
   )
 }
