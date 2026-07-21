@@ -21,6 +21,8 @@ import {
   updateLocalProject,
 } from "@/lib/projects"
 import { useCurrentProjectStore } from "@/store/currentprojectstore"
+import { buildPayload } from "@/lib/design-payload"
+import { syncProjectImagesInBackground } from "@/lib/project-image-sync"
 
 type Props = {
   open: boolean
@@ -55,19 +57,30 @@ const SaveProjectDialog: React.FC<Props> = ({ open, onOpenChange, signedIn, onSa
     setSaving(true)
     setError(null)
     try {
+      const savedPayload = signedIn ? buildPayload() : null
+      let savedId: string
       if (updating) {
         const ok = signedIn
-          ? await updateDbProject(currentId, trimmed)
+          ? await updateDbProject(currentId, trimmed, savedPayload ?? undefined)
           : updateLocalProject(currentId, trimmed)
         if (!ok) throw new Error("missing")
+        savedId = currentId
         setCurrent(currentId, trimmed, new Date().toISOString())
       } else {
-        const id = signedIn ? await saveDbProject(trimmed) : saveLocalProject(trimmed).id
+        const id = signedIn
+          ? await saveDbProject(trimmed, savedPayload ?? undefined)
+          : saveLocalProject(trimmed).id
+        savedId = id
         setCurrent(id, trimmed, new Date().toISOString())
         router.push(`/dashboard/${id}`)
       }
       onSaved?.()
       onOpenChange(false)
+      if (signedIn && savedPayload) {
+        setTimeout(() => {
+          void syncProjectImagesInBackground(savedId, trimmed, savedPayload)
+        }, 250)
+      }
     } catch {
       setError("Could not save project. Try again.")
     } finally {

@@ -17,8 +17,7 @@ import {
   ContextMenuTrigger,
 } from "../ui/context-menu"
 import {
-  buildPatternSvg,
-  patternToDataUri,
+  buildPatternStyle,
   DEFAULT_PATTERN_COLOR,
   DEFAULT_PATTERN_SCALE,
 } from "@/lib/patterns"
@@ -41,7 +40,7 @@ const PatternObjectRenderer: React.FC<PatternObjectRendererProps> = ({ object, o
   const setSelectedObjectId = useCanvasStore((state) => state.setSelectedObjectId)
 
   const opacity = Math.max(0, Math.min(100, object.patternOpacity ?? 100)) / 100
-  const svg = buildPatternSvg(object.patternType ?? "dots", {
+  const patternStyle = buildPatternStyle(object.patternType ?? "dots", {
     width: 1200,
     height: 630,
     size: object.patternScale ?? DEFAULT_PATTERN_SCALE,
@@ -55,14 +54,22 @@ const PatternObjectRenderer: React.FC<PatternObjectRendererProps> = ({ object, o
         className="canvas-object absolute inset-0"
         style={{
           zIndex: object.zIndex ?? order + 1,
-          backgroundImage: patternToDataUri(svg),
-          backgroundRepeat: "repeat",
-          backgroundSize: "cover",
-          opacity,
           outline: isSelected ? "2px solid var(--primary)" : undefined,
           outlineOffset: -2,
         }}
-      />
+        onMouseDown={(event) => {
+          event.stopPropagation()
+          setSelectedObjectId(object.id)
+        }}
+      >
+        <span
+          className="pointer-events-none absolute inset-0"
+          style={{
+            ...patternStyle,
+            opacity,
+          }}
+        />
+      </ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuItem
           onClick={() => {
@@ -111,8 +118,3 @@ const PatternObjectRenderer: React.FC<PatternObjectRendererProps> = ({ object, o
 }
 
 export default PatternObjectRenderer
-
-
-
-
-

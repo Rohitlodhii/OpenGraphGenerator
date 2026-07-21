@@ -10,6 +10,7 @@ import MotifObjectPreviewer from "../previewers/MotifObjectPreviewer"
 import ImportedSvgPreviewer from "../previewers/ImportedSvgPreviewer"
 import MockupObjectPreviewer from "../previewers/MockupObjectPreviewer"
 import AsciiObjectPreviewer from "../previewers/AsciiObjectPreviewer"
+import CssPresetPreviewer from "../previewers/CssPresetPreviewer"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -22,6 +23,8 @@ import {
   ArrowUpToLine,
   ArrowDown,
   ArrowDownToLine,
+  GripHorizontal,
+  GripVertical,
   ImageDown,
   Trash2,
 } from "lucide-react"
@@ -34,6 +37,8 @@ type CanvasObjectRendererProps = {
   order: number
 }
 
+type ResizeHandle = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw"
+
 const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoom, order }) => {
   const nodeRef = useRef<HTMLDivElement>(null)
   const updateObject = useCanvasStore((state) => state.updateObject)
@@ -45,13 +50,16 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
   const selectedObjectId = useCanvasStore((state) => state.selectedObjectId)
   const setSelectedObjectId = useCanvasStore((state) => state.setSelectedObjectId)
   const setBackgroundSrc = useImageStore((state) => state.setSrc)
+  const setBackgroundOpacity = useImageStore((state) => state.setOpacity)
   const setBackgroundType = useBackgroundStore((state) => state.setBackgroundType)
-  const [isResizing, setIsResizing] = useState(false)
+  const [resizeHandle, setResizeHandle] = useState<ResizeHandle | null>(null)
   const [isEditingText, setIsEditingText] = useState(false)
   const isTextEditing = isEditingText && selectedObjectId === object.id
   const resizeStartRef = useRef({
     mouseX: 0,
     mouseY: 0,
+    x: object.x,
+    y: object.y,
     width: object.width ?? 200,
     height: object.height ?? 200,
   })
@@ -65,58 +73,121 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
   const setAsBackground = () => {
     if (object.type !== "image" || !object.src) return
     setBackgroundSrc(object.src)
+    setBackgroundOpacity(object.imageOpacity ?? 100)
     setBackgroundType("image")
     removeObject(object.id)
   }
 
-  const handleResizeMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleResizePointerDown = (
+    handle: ResizeHandle,
+    event: React.PointerEvent<HTMLButtonElement>,
+  ) => {
     event.preventDefault()
     event.stopPropagation()
+    event.currentTarget.setPointerCapture(event.pointerId)
     resizeStartRef.current = {
       mouseX: event.clientX,
       mouseY: event.clientY,
+      x: object.x,
+      y: object.y,
       width: object.width ?? 200,
       height: object.height ?? 200,
     }
-    setIsResizing(true)
+    setResizeHandle(handle)
   }
 
   useEffect(() => {
-    if (!isResizing) return
+    if (!resizeHandle) return
 
-    const handleMouseMove = (event: MouseEvent) => {
+    const previousCursor = document.body.style.cursor
+    document.body.style.cursor = resizeHandle.includes("e") || resizeHandle.includes("w")
+      ? resizeHandle.includes("n") || resizeHandle.includes("s")
+        ? resizeHandle === "ne" || resizeHandle === "sw"
+          ? "nesw-resize"
+          : "nwse-resize"
+        : "ew-resize"
+      : "ns-resize"
+
+    const handlePointerMove = (event: PointerEvent) => {
       const scale = zoom / 100
       const deltaX = (event.clientX - resizeStartRef.current.mouseX) / scale
       const deltaY = (event.clientY - resizeStartRef.current.mouseY) / scale
       const minSize = 24
+      const start = resizeStartRef.current
+      const movesEast = resizeHandle.includes("e")
+      const movesWest = resizeHandle.includes("w")
+      const movesNorth = resizeHandle.includes("n")
+      const movesSouth = resizeHandle.includes("s")
+      const movesHorizontally = movesEast || movesWest
+      const movesVertically = movesNorth || movesSouth
 
-      let nextWidth = Math.max(minSize, resizeStartRef.current.width + deltaX)
-      let nextHeight = Math.max(minSize, resizeStartRef.current.height + deltaY)
+      let nextWidth = start.width
+      let nextHeight = start.height
+      let nextX = start.x
+      let nextY = start.y
+
+      if (movesEast) nextWidth = Math.max(minSize, start.width + deltaX)
+      if (movesWest) {
+        nextWidth = Math.max(minSize, start.width - deltaX)
+        nextX = start.x + (start.width - nextWidth)
+      }
+      if (movesSouth) nextHeight = Math.max(minSize, start.height + deltaY)
+      if (movesNorth) {
+        nextHeight = Math.max(minSize, start.height - deltaY)
+        nextY = start.y + (start.height - nextHeight)
+      }
 
       if (object.shapeType === "square" || object.shapeType === "circle") {
-        const nextSize = Math.max(nextWidth, nextHeight)
+        let nextSize: number
+        if (movesHorizontally && !movesVertically) {
+          nextSize = nextWidth
+        } else if (movesVertically && !movesHorizontally) {
+          nextSize = nextHeight
+        } else {
+          nextSize =
+            Math.abs(nextWidth - start.width) >= Math.abs(nextHeight - start.height)
+              ? nextWidth
+              : nextHeight
+        }
+        nextSize = Math.max(minSize, nextSize)
         nextWidth = nextSize
         nextHeight = nextSize
+
+        if (movesHorizontally && !movesVertically) {
+          nextX = movesWest ? start.x + (start.width - nextSize) : start.x
+          nextY = start.y + (start.height - nextSize) / 2
+        } else if (movesVertically && !movesHorizontally) {
+          nextX = start.x + (start.width - nextSize) / 2
+          nextY = movesNorth ? start.y + (start.height - nextSize) : start.y
+        } else {
+          nextX = movesWest ? start.x + (start.width - nextSize) : start.x
+          nextY = movesNorth ? start.y + (start.height - nextSize) : start.y
+        }
       }
 
       updateObject(object.id, {
+        x: nextX,
+        y: nextY,
         width: nextWidth,
         height: nextHeight,
       })
     }
 
-    const handleMouseUp = () => {
-      setIsResizing(false)
+    const handlePointerUp = () => {
+      setResizeHandle(null)
     }
 
-    window.addEventListener("mousemove", handleMouseMove)
-    window.addEventListener("mouseup", handleMouseUp)
+    window.addEventListener("pointermove", handlePointerMove)
+    window.addEventListener("pointerup", handlePointerUp)
+    window.addEventListener("pointercancel", handlePointerUp)
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove)
-      window.removeEventListener("mouseup", handleMouseUp)
+      document.body.style.cursor = previousCursor
+      window.removeEventListener("pointermove", handlePointerMove)
+      window.removeEventListener("pointerup", handlePointerUp)
+      window.removeEventListener("pointercancel", handlePointerUp)
     }
-  }, [isResizing, object.id, object.shapeType, updateObject, zoom])
+  }, [object.id, object.shapeType, resizeHandle, updateObject, zoom])
 
   // Delete the selected element with Delete/Backspace. Ignored while editing
   // text or when focus is in a form field (so typing in panel inputs is safe).
@@ -200,6 +271,11 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
 
     if (object.type === "ascii") {
       return <AsciiObjectPreviewer object={object} style={contentStyle} />
+    }
+
+    if (object.type === "cssPreset") {
+      const cssStyle: React.CSSProperties = { ...contentStyle, filter: undefined }
+      return <CssPresetPreviewer object={object} style={cssStyle} />
     }
 
     if (object.type === "shape") {
@@ -306,11 +382,11 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
         scale={zoom / 100}
         position={{ x: object.x, y: object.y }}
         onDrag={handleDrag}
-        disabled={isResizing || isTextEditing || selectedObjectId !== object.id}
+        disabled={Boolean(resizeHandle) || isTextEditing || selectedObjectId !== object.id}
       >
         <ContextMenuTrigger
           ref={nodeRef}
-          className={`canvas-object absolute select-none ${
+          className={`group/selection canvas-object absolute select-none ${
             isTextEditing
               ? "cursor-text"
               : selectedObjectId === object.id
@@ -325,9 +401,6 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
             // the layers panel) is unchanged.
             zIndex:
               selectedObjectId === object.id ? 9999 : object.zIndex ?? order + 1,
-            outline:
-              selectedObjectId === object.id ? "2px solid var(--primary)" : undefined,
-            outlineOffset: selectedObjectId === object.id ? 2 : 0,
           }}
         >
           {/* Selection is handled on this inner wrapper, not on the trigger:
@@ -346,28 +419,61 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
             {renderObject()}
           </div>
           {selectedObjectId === object.id && !isTextEditing && (
-            <button
-              type="button"
-              aria-label="Delete element"
-              className="absolute -right-2.5 -top-2.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-background bg-destructive text-white shadow-sm cursor-pointer"
-              onMouseDown={(event) => {
-                event.preventDefault()
-                event.stopPropagation()
-              }}
-              onClick={(event) => {
-                event.preventDefault()
-                event.stopPropagation()
-                removeObject(object.id)
-              }}
-            >
-              <Trash2 className="h-3 w-3" />
-            </button>
-          )}
-          {selectedObjectId === object.id && !isTextEditing && (
-            <div
-              className="absolute -right-1.5 -bottom-1.5 h-3 w-3 rounded-full border-2 border-background bg-primary shadow-sm cursor-se-resize"
-              onMouseDown={handleResizeMouseDown}
-            />
+            <>
+              <div className="pointer-events-none absolute -inset-1.5 z-10 border border-primary/80" />
+              <ResizeHandleButton
+                handle="n"
+                label="Resize height from top"
+                className="-top-3.5 left-1/2 h-4 w-12 -translate-x-1/2 cursor-ns-resize"
+                onPointerDown={handleResizePointerDown}
+                icon={<GripHorizontal className="h-3.5 w-3.5" />}
+              />
+              <ResizeHandleButton
+                handle="s"
+                label="Resize height from bottom"
+                className="-bottom-3.5 left-1/2 h-4 w-12 -translate-x-1/2 cursor-ns-resize"
+                onPointerDown={handleResizePointerDown}
+                icon={<GripHorizontal className="h-3.5 w-3.5" />}
+              />
+              <ResizeHandleButton
+                handle="w"
+                label="Resize width from left"
+                className="-left-3.5 top-1/2 h-12 w-4 -translate-y-1/2 cursor-ew-resize"
+                onPointerDown={handleResizePointerDown}
+                icon={<GripVertical className="h-3.5 w-3.5" />}
+              />
+              <ResizeHandleButton
+                handle="e"
+                label="Resize width from right"
+                className="-right-3.5 top-1/2 h-12 w-4 -translate-y-1/2 cursor-ew-resize"
+                onPointerDown={handleResizePointerDown}
+                icon={<GripVertical className="h-3.5 w-3.5" />}
+              />
+              <ResizeHandleButton
+                handle="nw"
+                label="Resize from top left"
+                className="-left-3.5 -top-3.5 h-4 w-4 cursor-nwse-resize"
+                onPointerDown={handleResizePointerDown}
+              />
+              <ResizeHandleButton
+                handle="ne"
+                label="Resize from top right"
+                className="-right-3.5 -top-3.5 h-4 w-4 cursor-nesw-resize"
+                onPointerDown={handleResizePointerDown}
+              />
+              <ResizeHandleButton
+                handle="sw"
+                label="Resize from bottom left"
+                className="-bottom-3.5 -left-3.5 h-4 w-4 cursor-nesw-resize"
+                onPointerDown={handleResizePointerDown}
+              />
+              <ResizeHandleButton
+                handle="se"
+                label="Resize from bottom right"
+                className="-bottom-3.5 -right-3.5 h-4 w-4 cursor-nwse-resize"
+                onPointerDown={handleResizePointerDown}
+              />
+            </>
           )}
         </ContextMenuTrigger>
       </Draggable>
@@ -426,5 +532,39 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
     </ContextMenu>
   )
 }
+
+const ResizeHandleButton = ({
+  handle,
+  label,
+  className,
+  icon,
+  onPointerDown,
+}: {
+  handle: ResizeHandle
+  label: string
+  className: string
+  icon?: React.ReactNode
+  onPointerDown: (
+    handle: ResizeHandle,
+    event: React.PointerEvent<HTMLButtonElement>,
+  ) => void
+}) => (
+  <button
+    type="button"
+    aria-label={label}
+    className={`group/resize-handle absolute z-20 flex items-center justify-center ${className}`}
+    onPointerDown={(event) => onPointerDown(handle, event)}
+  >
+    <span
+      className={`flex items-center justify-center border-2 border-background bg-primary text-primary-foreground shadow-sm transition-opacity duration-150 ease-out ${
+        icon
+          ? "h-5 min-w-5 rounded-md px-0.5 opacity-0 group-hover/resize-handle:opacity-100"
+          : "h-3 w-3 rounded-[3px]"
+      }`}
+    >
+      {icon}
+    </span>
+  </button>
+)
 
 export default CanvasObjectRenderer

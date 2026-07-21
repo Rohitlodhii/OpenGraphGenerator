@@ -3,6 +3,7 @@ import { useImageStore } from "@/store/imagestore"
 import { Slider } from "../ui/slider"
 import { useSliderWithInput } from "@/hooks/use-slider-with-input"
 import { ChevronsLeftRight, Upload, X } from "lucide-react"
+import { useBackgroundStore } from "@/store/backgroundstore"
 
 export const ImagePanel = () => {
   const {
@@ -12,13 +13,16 @@ export const ImagePanel = () => {
     saturation,
     contrast,
     brightness,
+    opacity,
     setSrc,
     setBlur,
     setGrain,
     setSaturation,
     setContrast,
     setBrightness,
+    setOpacity,
   } = useImageStore()
+  const setBackgroundType = useBackgroundStore((state) => state.setBackgroundType)
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -29,7 +33,8 @@ export const ImagePanel = () => {
   }
 
   const handleRemoveImage = () => {
-    setSrc("")
+    setSrc(null)
+    setBackgroundType("solid")
   }
 
   const handleSlider =
@@ -43,6 +48,16 @@ export const ImagePanel = () => {
 
   return (
     <div className="w-full flex flex-col gap-4 rounded-xl pb-2">
+      {src && (
+        <div className="overflow-hidden rounded-lg border border-border bg-muted/40">
+          <img
+            src={src}
+            alt="Current background"
+            className="h-24 w-full object-cover"
+            style={{ opacity: Math.max(0, Math.min(100, opacity)) / 100 }}
+          />
+        </div>
+      )}
 
       {/* Upload */}
       <div className="flex flex-col gap-2">
@@ -63,7 +78,7 @@ export const ImagePanel = () => {
             className="flex items-center justify-center gap-2 px-3 py-2 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-destructive/10 hover:border-destructive/40 transition"
           >
             <span className="text-sm text-muted-foreground w-4 h-4 flex items-center justify-center"><X/></span>
-            <span className="text-sm">Remove Image</span>
+            <span className="text-sm">Unset Background</span>
           </button>
         )}
       </div>
@@ -71,11 +86,19 @@ export const ImagePanel = () => {
       {/* Controls */}
       <div className="flex flex-col gap-3">
         <SliderRow
+          label="Opacity"
+          value={opacity}
+          min={0}
+          max={100}
+          onRegisterReset={(fn) => register(fn, 0)}
+          onChange={handleSlider(setOpacity)}
+        />
+        <SliderRow
           label="Blur"
           value={blur}
           min={0}
           max={30}
-          onRegisterReset={(fn) => register(fn, 0)}
+          onRegisterReset={(fn) => register(fn, 1)}
           onChange={handleSlider(setBlur)}
         />
 
@@ -85,7 +108,7 @@ export const ImagePanel = () => {
           min={0}
           max={1}
           step={0.01}
-          onRegisterReset={(fn) => register(fn, 1)}
+          onRegisterReset={(fn) => register(fn, 2)}
           onChange={handleSlider(setGrain)}
         />
 
@@ -95,7 +118,7 @@ export const ImagePanel = () => {
           min={0}
           max={3}
           step={0.01}
-          onRegisterReset={(fn) => register(fn, 2)}
+          onRegisterReset={(fn) => register(fn, 3)}
           onChange={handleSlider(setSaturation)}
         />
 
@@ -105,7 +128,7 @@ export const ImagePanel = () => {
           min={0}
           max={3}
           step={0.01}
-          onRegisterReset={(fn) => register(fn, 3)}
+          onRegisterReset={(fn) => register(fn, 4)}
           onChange={handleSlider(setContrast)}
         />
 
@@ -115,7 +138,7 @@ export const ImagePanel = () => {
           min={0}
           max={3}
           step={0.01}
-          onRegisterReset={(fn) => register(fn, 4)}
+          onRegisterReset={(fn) => register(fn, 5)}
           onChange={handleSlider(setBrightness)}
         />
       </div>

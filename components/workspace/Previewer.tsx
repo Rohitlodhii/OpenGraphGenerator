@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
-import { ZoomIn, ZoomOut, Maximize2, Minimize2, Download, Lock, Unlock } from "lucide-react"
+import { ZoomIn, ZoomOut, Download, Lock, Unlock, ImagePlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import useDimensionStore from "@/hooks/dimension"
 import Stage from "./Stage"
@@ -9,41 +9,138 @@ import BackgroundRenderer from "./BackgroundRenderer"
 import ObjectsLayer from "./ObjectsLayer"
 import ExportDialog from "./ExportDialog"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useCanvasStore } from "@/store/canvasstore"
+import { importImageFileLocally } from "@/lib/local-image-assets"
+
+const createImageId = () => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID()
+  }
+  return `image-${Date.now()}-${Math.floor(Math.random() * 100000)}`
+}
+
+const getImageDimensions = (src: string) =>
+  new Promise<{ width: number; height: number }>((resolve, reject) => {
+    const image = new Image()
+    image.onload = () =>
+      resolve({
+        width: image.naturalWidth || 320,
+        height: image.naturalHeight || 240,
+      })
+    image.onerror = reject
+    image.src = src
+  })
+
+const hasDraggedFiles = (dataTransfer: DataTransfer) =>
+  dataTransfer.types.includes("Files") ||
+  Array.from(dataTransfer.items).some((item) => item.kind === "file")
 
 const Previewer = () => {
   const isMobile = useIsMobile()
-  const [zoom, setZoom] = useState(70)
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [zoomOverride, setZoomOverride] = useState<number | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
   const [locked, setLocked] = useState(false)
   const [pan, setPan] = useState({ x: 0, y: 0 })
-  const zoomTouched = useRef(false)
-
-  // Default to 25% on mobile until the user manually changes zoom
-  useEffect(() => {
-    if (zoomTouched.current) return
-    setZoom(isMobile ? 25 : 70)
-  }, [isMobile])
+  const [isImageDragging, setIsImageDragging] = useState(false)
+  const addObject = useCanvasStore((state) => state.addObject)
+  const defaultZoom = isMobile ? 25 : 70
+  const zoom = zoomOverride ?? defaultZoom
 
   const width = useDimensionStore((s) => s.width)
   const height = useDimensionStore((s) => s.height)
 
   const previewRef = useRef<HTMLDivElement>(null)
 
-  const zoomIn = () => {
-    zoomTouched.current = true
-    setZoom((z) => Math.min(z + 10, 200))
-  }
-  const zoomOut = () => {
-    zoomTouched.current = true
-    setZoom((z) => Math.max(z - 10, 25))
-  }
-  const resetZoom = () => {
-    zoomTouched.current = true
-    setZoom(100)
+  const handleImageDrop = async (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setIsImageDragging(false)
+
+    const files = Array.from(event.dataTransfer.files).filter((file) =>
+      file.type.startsWith("image/"),
+    )
+    if (files.length === 0) return
+
+    const stage = previewRef.current?.querySelector<HTMLElement>(".canvas-stage")
+    const stageRect = stage?.getBoundingClientRect()
+    const droppedInsideStage =
+      stageRect &&
+      event.clientX >= stageRect.left &&
+      event.clientX <= stageRect.right &&
+      event.clientY >= stageRect.top &&
+      event.clientY <= stageRect.bottom
+    const dropX =
+      droppedInsideStage && stageRect
+        ? ((event.clientX - stageRect.left) / stageRect.width) * width
+        : width / 2
+    const dropY =
+      droppedInsideStage && stageRect
+        ? ((event.clientY - stageRect.top) / stageRect.height) * height
+        : height / 2
+    const maxZIndex = useCanvasStore
+      .getState()
+      .objects.reduce((max, object) => Math.max(max, object.zIndex ?? 0), 0)
+
+    await Promise.all(
+      files.map(async (file, index) => {
+        const imported = await importImageFileLocally(file)
+        try {
+          const dimensions = await getImageDimensions(imported.src)
+          let fitScale = Math.min(
+            1,
+            Math.min(420, width * 0.6) / dimensions.width,
+            Math.min(320, height * 0.6) / dimensions.height,
+          )
+          let imageWidth = dimensions.width * fitScale
+          let imageHeight = dimensions.height * fitScale
+
+          if (imageWidth < 24 || imageHeight < 24) {
+            fitScale *= Math.max(24 / imageWidth, 24 / imageHeight)
+            imageWidth = dimensions.width * fitScale
+            imageHeight = dimensions.height * fitScale
+          }
+
+          const offset = index * 18
+          addObject({
+            id: createImageId(),
+            type: "image",
+            src: imported.src,
+            imageAssetId: imported.assetId,
+            imageFileName: imported.fileName,
+            imageFileSize: imported.fileSize,
+            imageMimeType: imported.mimeType,
+            x: Math.max(0, Math.min(width - imageWidth, dropX - imageWidth / 2 + offset)),
+            y: Math.max(0, Math.min(height - imageHeight, dropY - imageHeight / 2 + offset)),
+            width: imageWidth,
+            height: imageHeight,
+            zIndex: maxZIndex + index + 1,
+            imageCropX: 0,
+            imageCropY: 0,
+            imageCropScale: 1,
+            imageBlendMode: "normal",
+            imageGrain: 0,
+            imageBlur: 0,
+            imageBorderRadius: 8,
+          })
+        } catch {
+          URL.revokeObjectURL(imported.src)
+        }
+      }),
+    )
   }
 
-  const toggleFullscreen = () => setIsFullscreen((p) => !p)
+  const zoomIn = React.useCallback(() => {
+    setZoomOverride((current) =>
+      Math.min((current ?? defaultZoom) + 10, 200),
+    )
+  }, [defaultZoom])
+  const zoomOut = React.useCallback(() => {
+    setZoomOverride((current) =>
+      Math.max((current ?? defaultZoom) - 10, 25),
+    )
+  }, [defaultZoom])
+  const resetZoom = () => {
+    setZoomOverride(100)
+  }
 
   // Keyboard shortcuts: Ctrl+= zoom in, Ctrl+- zoom out
   useEffect(() => {
@@ -59,7 +156,7 @@ const Previewer = () => {
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [])
+  }, [zoomIn, zoomOut])
 
   // Ctrl + mouse wheel to zoom; plain wheel to pan (scroll) the preview
   useEffect(() => {
@@ -86,7 +183,7 @@ const Previewer = () => {
     }
     el.addEventListener("wheel", handleWheel, { passive: false })
     return () => el.removeEventListener("wheel", handleWheel)
-  }, [locked])
+  }, [locked, zoomIn, zoomOut])
 
   // Two-finger pinch to zoom (mobile)
   useEffect(() => {
@@ -111,10 +208,9 @@ const Previewer = () => {
     const onTouchMove = (e: TouchEvent) => {
       if (e.touches.length !== 2 || startDist === 0) return
       e.preventDefault()
-      zoomTouched.current = true
       const ratio = dist(e.touches) / startDist
       const next = Math.round(Math.min(200, Math.max(25, startZoom * ratio)))
-      setZoom(next)
+      setZoomOverride(next)
     }
 
     const onTouchEnd = (e: TouchEvent) => {
@@ -137,11 +233,46 @@ const Previewer = () => {
     <div className="w-full h-full flex flex-col bg-pattern relative">
 
       {/* Preview Area */}
-      <div ref={previewRef} className="flex-1 relative overflow-hidden flex items-center justify-center touch-none">
+      <div
+        ref={previewRef}
+        className="flex-1 relative overflow-hidden flex items-center justify-center touch-none"
+        onDragEnter={(event) => {
+          if (hasDraggedFiles(event.dataTransfer)) {
+            setIsImageDragging(true)
+          }
+        }}
+        onDragOver={(event) => {
+          if (!hasDraggedFiles(event.dataTransfer)) return
+          event.preventDefault()
+          event.dataTransfer.dropEffect = "copy"
+          setIsImageDragging(true)
+        }}
+        onDragLeave={(event) => {
+          if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
+          setIsImageDragging(false)
+        }}
+        onDrop={handleImageDrop}
+      >
         <Stage width={width} height={height} zoom={zoom} locked={locked} position={pan} onPositionChange={setPan}>
           <BackgroundRenderer width={width} height={height} />
           <ObjectsLayer zoom={zoom} />
         </Stage>
+
+        {isImageDragging && (
+          <div className="pointer-events-none absolute inset-3 z-50 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary/70 bg-primary/8 backdrop-blur-[2px]">
+            <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-card/95 px-4 py-3 shadow-lg">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <ImagePlus className="h-4 w-4" />
+              </span>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">Drop image to add</span>
+                <span className="text-xs text-muted-foreground">
+                  It will appear on the canvas and in Image Layers
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Mobile lock toggle - lock canvas position (zoom still works) */}
         {isMobile && (

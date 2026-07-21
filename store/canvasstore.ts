@@ -1,7 +1,8 @@
 import { create } from "zustand"
 import type { SvgNode, DefEntry } from "@/lib/svg-import"
+import type { CssGradientLayer } from "@/lib/css-presets"
 
-export type CanvasObjectType = "text" | "image" | "svg" | "pattern" | "blob" | "motif" | "importedSvg" | "mockup" | "ascii"
+export type CanvasObjectType = "text" | "image" | "svg" | "pattern" | "blob" | "motif" | "importedSvg" | "mockup" | "ascii" | "cssPreset"
 export type CanvasShapeType = "circle" | "rectangle" | "triangle" | "square"
 export type CanvasTextAlign = "left" | "center" | "right" | "justify"
 export type CanvasPatternType =
@@ -11,6 +12,21 @@ export type CanvasPatternType =
   | "diagonal"
   | "horizontal"
   | "vertical"
+  | "gradient-grid-right"
+  | "gradient-grid-left"
+  | "dual-gradient-grid"
+  | "top-fade-grid"
+  | "bottom-fade-grid"
+  | "center-fade-grid"
+  | "diagonal-cross-grid"
+  | "diagonal-cross-fade"
+  | "dashed-grid"
+  | "dashed-center-fade"
+  | "circuit-board"
+  | "zigzag-lightning"
+  | "grid-with-dots"
+  | "colored-noise"
+  | "striped-grid-spotlight"
 
 export interface CanvasObject {
   id: string
@@ -55,9 +71,15 @@ export interface CanvasObject {
   imageBlendMode?: string
   imageGrain?: number
   imageBlur?: number
+  imageOpacity?: number
   imageStrokeColor?: string
   imageStrokeWidth?: number
   imageBorderRadius?: number
+  imageAssetId?: string
+  imageFileName?: string
+  imageFileSize?: number
+  imageMimeType?: string
+  imageRemoteUrl?: string
   // Blob fields
   blobId?: string
   blobGrain?: number
@@ -83,6 +105,21 @@ export interface CanvasObject {
   asciiColored?: boolean
   asciiAnimationStyle?: "fade" | "typewriter" | "matrix" | "none"
   asciiObjectFit?: "cover" | "contain" | "fill"
+  // CSS preset fields (pattern backgrounds, radial glows, gradient decorations).
+  // The preset's Tailwind wrapper classes and inline background style are stored
+  // verbatim so the on-canvas object reproduces the source preset exactly.
+  presetKind?: "patternBg" | "radialGlow" | "gradientDecoration"
+  presetId?: string
+  cssWrapperClassName?: string
+  cssStyle?: Record<string, string>
+  cssBackgroundColor?: string
+  cssBackgroundEnabled?: boolean
+  cssGradientLayers?: CssGradientLayer[]
+  cssOverlayColor?: string
+  cssGrain?: number
+  cssBlur?: number
+  cssOpacity?: number
+  cssRadius?: number
 }
 
 interface CanvasState {

@@ -102,11 +102,14 @@ export const hasLocalProjects = (): boolean => Object.keys(readLocalMap()).lengt
 
 // ---- DB (signed-in) ----
 
-export const saveDbProject = async (name: string): Promise<string> => {
+export const saveDbProject = async (
+  name: string,
+  data: DesignPayload = buildPayload(),
+): Promise<string> => {
   const res = await fetch("/api/projects", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: name.trim(), data: buildPayload() }),
+    body: JSON.stringify({ name: name.trim(), data }),
   })
   if (!res.ok) throw new Error("Failed to save project")
   const { project } = (await res.json()) as { project: { id: string } }
@@ -114,11 +117,15 @@ export const saveDbProject = async (name: string): Promise<string> => {
 }
 
 // Overwrite an existing DB project's data (keeps id + createdAt).
-export const updateDbProject = async (id: string, name: string): Promise<boolean> => {
+export const updateDbProject = async (
+  id: string,
+  name: string,
+  data: DesignPayload = buildPayload(),
+): Promise<boolean> => {
   const res = await fetch(`/api/projects/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: name.trim(), data: buildPayload() }),
+    body: JSON.stringify({ name: name.trim(), data }),
   })
   if (res.status === 404) return false
   if (!res.ok) throw new Error("Failed to update project")

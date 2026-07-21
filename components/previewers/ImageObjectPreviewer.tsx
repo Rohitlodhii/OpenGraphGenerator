@@ -14,6 +14,7 @@ const ImageObjectPreviewer: React.FC<ImageObjectPreviewerProps> = ({ object, sty
   const cropY = object.imageCropY ?? 0
   const blur = Math.max(0, object.imageBlur ?? 0)
   const grain = Math.max(0, Math.min(100, object.imageGrain ?? 0))
+  const opacity = Math.max(0, Math.min(100, object.imageOpacity ?? 100)) / 100
   const borderRadius = Math.max(0, object.imageBorderRadius ?? 8)
   const blendMode = (object.imageBlendMode ?? "normal") as React.CSSProperties["mixBlendMode"]
   const strokeColor = object.imageStrokeColor
@@ -32,6 +33,7 @@ const ImageObjectPreviewer: React.FC<ImageObjectPreviewerProps> = ({ object, sty
         border: strokeColor && strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : undefined,
         boxSizing: "border-box",
         mixBlendMode: blendMode,
+        opacity,
       }}
     >
       <img

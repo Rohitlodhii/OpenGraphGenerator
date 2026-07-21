@@ -4,7 +4,6 @@ import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from '../
 import { Button } from '../ui/button'
 import { NewBackground } from './NewBackground'
 import { SolidColorPanel } from './SolidColorPanel'
-import { ImagePanel } from './ImagePanel'
 import { useBackgroundStore } from '@/store/backgroundstore'
 import { useGradientStore } from '@/store/gradientstore'
 import { libraryGradients } from '@/data/gradients'
@@ -16,13 +15,12 @@ import GradientLibraryDialog from './GradientLibraryDialog'
 
 const items = [
   { label: "Solid Color", value: 'solid' },
-  { label: "Upload Image", value: 'image' },
   { label: "Mesh Gradients", value: 'mesh' },
   { label : "SVG Gradients" , value : 'Svg Gradient'},
   { label: "Presets", value: 'presets' },
 ]
 
-type SupportedBackgroundType = 'solid' | 'mesh' | 'image' | 'Svg Gradient'
+type SupportedBackgroundType = 'solid' | 'mesh' | 'Svg Gradient'
 
 type BackgroundPanelProps = {
   isOpen?: boolean
@@ -48,7 +46,7 @@ const BackgroundPanel = ({ isOpen, onToggle, chromeless = false }: BackgroundPan
 
   const handleSelectionChange = (value: string) => {
     setSelected(value)
-    if (value === 'solid' || value === 'mesh' || value === 'image' || value === 'Svg Gradient') {
+    if (value === 'solid' || value === 'mesh' || value === 'Svg Gradient') {
       setBackgroundType(value as SupportedBackgroundType)
     }
   }
@@ -58,7 +56,7 @@ const BackgroundPanel = ({ isOpen, onToggle, chromeless = false }: BackgroundPan
   const clearGradient = () => {
     setAppliedGradient(null)
     const fallback =
-      selected === 'solid' || selected === 'mesh' || selected === 'image' || selected === 'Svg Gradient'
+      selected === 'solid' || selected === 'mesh' || selected === 'Svg Gradient'
         ? (selected as SupportedBackgroundType)
         : 'solid'
     setBackgroundType(fallback)
@@ -156,7 +154,6 @@ const BackgroundPanel = ({ isOpen, onToggle, chromeless = false }: BackgroundPan
   ) : (
     <>
       {selected === 'solid' && <SolidColorPanel />}
-      {selected === 'image' && <ImagePanel />}
       {selected === 'mesh' && <NewBackground />}
       {selected === 'Svg Gradient' && <SvgGradientPanel />}
       {gradientSection}

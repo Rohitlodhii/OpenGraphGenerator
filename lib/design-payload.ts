@@ -6,6 +6,10 @@ import { useMeshStore } from "@/store/meshstore"
 import { useSolidColorStore } from "@/store/solidcolorstore"
 import useSvgGradientStore from "@/store/svggradientstore"
 import { useGradientStore } from "@/store/gradientstore"
+import {
+  hydrateLocalCanvasImages,
+  localImageMarker,
+} from "@/lib/local-image-assets"
 
 export type DesignPayload = {
   background: {
@@ -37,6 +41,7 @@ export type DesignPayload = {
     saturation: number
     contrast: number
     brightness: number
+    opacity?: number
   }
   svgGradient: {
     pathsIndex: number
@@ -94,6 +99,7 @@ export const buildPayload = (): DesignPayload => {
       saturation: image.saturation,
       contrast: image.contrast,
       brightness: image.brightness,
+      opacity: image.opacity,
     },
     svgGradient: {
       pathsIndex: svg.pathsIndex,
@@ -108,7 +114,15 @@ export const buildPayload = (): DesignPayload => {
       appliedGradientId: gradient.appliedGradientId,
     },
     canvas: {
-      objects: canvas.objects.map((object) => ({ ...object })),
+      objects: canvas.objects.map((object) => ({
+        ...object,
+        src:
+          object.type === "image" && object.imageRemoteUrl
+            ? object.imageRemoteUrl
+            : object.type === "image" && object.imageAssetId
+              ? localImageMarker(object.imageAssetId)
+              : object.src,
+      })),
       selectedObjectId: canvas.selectedObjectId,
     },
     dimensions: {
@@ -145,6 +159,7 @@ export const applyPayload = (payload: DesignPayload) => {
     saturation: payload.image.saturation,
     contrast: payload.image.contrast,
     brightness: payload.image.brightness,
+    opacity: payload.image.opacity ?? 100,
   })
 
   useSvgGradientStore.setState({
@@ -164,6 +179,16 @@ export const applyPayload = (payload: DesignPayload) => {
   useCanvasStore.setState({
     objects: payload.canvas.objects.map((object) => ({ ...object })),
     selectedObjectId: payload.canvas.selectedObjectId,
+  })
+
+  void hydrateLocalCanvasImages(payload.canvas.objects).then((hydrated) => {
+    if (hydrated.size === 0) return
+    useCanvasStore.setState((state) => ({
+      objects: state.objects.map((object) => {
+        const src = hydrated.get(object.id)
+        return src ? { ...object, src } : object
+      }),
+    }))
   })
 
   useDimensionStore.setState({

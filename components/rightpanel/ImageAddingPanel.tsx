@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useEffect, useMemo, useRef, useState } from "react"
-import { ImageDown, ImagePlus, Minus, Plus, Trash2, Upload } from "lucide-react"
+import React, { useMemo, useState } from "react"
+import { ImageDown, ImagePlus, Layers, Minus, Plus, StickyNote, Trash2, Upload } from "lucide-react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { useCanvasStore } from "@/store/canvasstore"
@@ -11,6 +11,21 @@ import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "../u
 import { Select, SelectTrigger, SelectValue, SelectPopup, SelectItem } from "../ui/select"
 import ColorPopup from "../helpers/colorpopup"
 import SliderWithInput from "../helpers/SliderWithInput"
+import ImagePanel from "./ImagePanel"
+import PaperTapesDialog from "./PaperTapesDialog"
+import CssPresetDialog, { CssPreset } from "./CssPresetDialog"
+import CssPresetLayerControls from "./CssPresetLayerControls"
+import { radialGlowPresets } from "@/store/radialglowstore"
+import { gradientDecorationPresets } from "@/store/gradientdecorationstore"
+import {
+  createEditableCssPreset,
+  recolorGradientLayers,
+} from "@/lib/css-presets"
+import { importImageFileLocally } from "@/lib/local-image-assets"
+
+// Overlays combine the radial-glow and gradient-decoration presets into a
+// single editable-image-adjacent picker.
+const OVERLAY_PRESETS: CssPreset[] = [...radialGlowPresets, ...gradientDecorationPresets]
 
 type ImageAddingPanelProps = {
   isOpen?: boolean
@@ -42,17 +57,74 @@ const BLEND_MODES = [
 
 const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingPanelProps) => {
   const expanded = chromeless ? true : isOpen
-  const { objects, selectedObjectId, addObject, updateObject, removeObject, setSelectedObjectId } =
+  const { objects, addObject, updateObject, removeObject, setSelectedObjectId } =
     useCanvasStore()
   const setBackgroundSrc = useImageStore((state) => state.setSrc)
+  const setBackgroundOpacity = useImageStore((state) => state.setOpacity)
+  const backgroundSrc = useImageStore((state) => state.src)
+  const backgroundType = useBackgroundStore((state) => state.backgroundType)
   const setBackgroundType = useBackgroundStore((state) => state.setBackgroundType)
   const [openItems, setOpenItems] = useState<string[]>([])
+  const [paperTapesOpen, setPaperTapesOpen] = useState(false)
+  const [overlaysOpen, setOverlaysOpen] = useState(false)
+
+  // Overlay layers already placed on the canvas (radial glows + gradient decos).
+  const overlayObjects = useMemo(
+    () =>
+      [...objects]
+        .filter(
+          (object) =>
+            object.type === "cssPreset" &&
+            (object.presetKind === "radialGlow" || object.presetKind === "gradientDecoration"),
+        )
+        .sort((a, b) => (b.zIndex ?? 0) - (a.zIndex ?? 0)),
+    [objects],
+  )
+
+  // Drop an overlay preset on the canvas as an editable cssPreset object.
+  const addOverlay = (preset: CssPreset) => {
+    const isGlow = radialGlowPresets.some((p) => p.id === preset.id)
+    const maxZIndex = objects.reduce((max, object) => Math.max(max, object.zIndex ?? 0), 0)
+    const id = createId()
+    const editablePreset = createEditableCssPreset(
+      preset.wrapperClassName,
+      preset.innerStyle,
+    )
+    const overlayColor = preset.defaultColor ?? "#6366f1"
+    addObject({
+      id,
+      type: "cssPreset",
+      presetKind: isGlow ? "radialGlow" : "gradientDecoration",
+      presetId: preset.name,
+      cssWrapperClassName: editablePreset.wrapperClassName,
+      cssStyle: editablePreset.innerStyle,
+      cssBackgroundEnabled: false,
+      cssBackgroundColor: "transparent",
+      cssGradientLayers: recolorGradientLayers(
+        editablePreset.gradientLayers,
+        overlayColor,
+      ),
+      cssOverlayColor: overlayColor,
+      cssGrain: 0,
+      cssBlur: 0,
+      cssOpacity: 100,
+      cssRadius: 0,
+      x: 60,
+      y: 60,
+      width: 360,
+      height: 240,
+      rotation: 0,
+      zIndex: maxZIndex + 1,
+    })
+    setSelectedObjectId(id)
+  }
 
   // Promote an image layer to the canvas background and remove the floating
   // object so it doesn't overlap the background it now provides.
   const setImageAsBackground = (image: (typeof objects)[number]) => {
     if (!image.src) return
     setBackgroundSrc(image.src)
+    setBackgroundOpacity(image.imageOpacity ?? 100)
     setBackgroundType("image")
     removeObject(image.id)
   }
@@ -65,30 +137,39 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
     [objects],
   )
 
-  const selectedImageObject = useMemo(() => {
-    const selected = imageObjects.find((obj) => obj.id === selectedObjectId)
-    return selected ?? null
-  }, [imageObjects, selectedObjectId])
+  // Auto-expand image controls when canvas selection changes.
+  React.useEffect(
+    () =>
+      useCanvasStore.subscribe((state, previousState) => {
+        const selectedId = state.selectedObjectId
+        if (!selectedId || selectedId === previousState.selectedObjectId) return
+        const isImage = state.objects.some(
+          (object) => object.id === selectedId && object.type === "image",
+        )
+        if (!isImage) return
+        setOpenItems((current) =>
+          current.includes(selectedId) ? current : [...current, selectedId],
+        )
+      }),
+    [],
+  )
 
-  // Auto-expand accordion when image is selected on canvas
-  useEffect(() => {
-    if (!selectedObjectId) return
-    const isImage = imageObjects.some((image) => image.id === selectedObjectId)
-    if (!isImage) return
-    setOpenItems((prev) => (prev.includes(selectedObjectId) ? prev : [...prev, selectedObjectId]))
-  }, [selectedObjectId, imageObjects])
-
-  const handleFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (!files?.length) return
-
+  const handleFiles = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? [])
+    event.target.value = ""
+    if (files.length === 0) return
     const maxZIndex = objects.reduce((max, object) => Math.max(max, object.zIndex ?? 0), 0)
-    Array.from(files).forEach((file, index) => {
-      const src = URL.createObjectURL(file)
+    const importedFiles = await Promise.all(files.map(importImageFileLocally))
+
+    importedFiles.forEach((imported, index) => {
       addObject({
         id: createId(),
         type: "image",
-        src,
+        src: imported.src,
+        imageAssetId: imported.assetId,
+        imageFileName: imported.fileName,
+        imageFileSize: imported.fileSize,
+        imageMimeType: imported.mimeType,
         x: 80 + index * 10,
         y: 80 + index * 10,
         width: 260,
@@ -100,11 +181,10 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
         imageBlendMode: "normal",
         imageGrain: 0,
         imageBlur: 0,
+        imageOpacity: 100,
         imageBorderRadius: 8,
       })
     })
-
-    event.target.value = ""
   }
 
   const compactButton = "h-8 rounded-md px-3 text-xs"
@@ -152,6 +232,47 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
             <Upload className="h-5 w-5 text-muted-foreground" />
             <span className="text-sm">Upload & Add Images</span>
           </label>
+
+          <button
+            type="button"
+            onClick={() => setPaperTapesOpen(true)}
+            className="flex items-center justify-center gap-2 px-3 py-3 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition"
+          >
+            <StickyNote className="h-5 w-5 text-muted-foreground" />
+            <span className="text-sm">Paper & Tapes</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setOverlaysOpen(true)}
+            className="flex items-center justify-center gap-2 px-3 py-3 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition"
+          >
+            <Layers className="h-5 w-5 text-muted-foreground" />
+            <span className="text-sm">Overlays</span>
+          </button>
+
+          {backgroundType === "image" && backgroundSrc && (
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-medium text-muted-foreground">Background Image</span>
+              <ImagePanel />
+            </div>
+          )}
+
+          {overlayObjects.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span className="text-xs text-muted-foreground font-medium">Overlay Layers</span>
+              <div className="flex flex-col gap-2">
+                {overlayObjects.map((overlay) => (
+                  <CssPresetLayerControls
+                    key={overlay.id}
+                    object={overlay}
+                    onUpdate={(updates) => updateObject(overlay.id, updates)}
+                    onRemove={() => removeObject(overlay.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {imageObjects.length > 0 && (
             <div className="flex flex-col gap-2">
@@ -304,6 +425,16 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
                           Effects
                         </span>
                         <SliderWithInput
+                          key={`image-opacity-${image.id}`}
+                          defaultValue={[image.imageOpacity ?? 100]}
+                          initialValue={[image.imageOpacity ?? 100]}
+                          label="Opacity"
+                          maxValue={100}
+                          minValue={0}
+                          step={1}
+                          onChange={(vals) => updateObject(image.id, { imageOpacity: vals[0] })}
+                        />
+                        <SliderWithInput
                           key={`image-blur-${image.id}`}
                           defaultValue={[image.imageBlur ?? 0]}
                           initialValue={[image.imageBlur ?? 0]}
@@ -398,6 +529,7 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
                               imageCropY: 0,
                               imageBlur: 0,
                               imageGrain: 0,
+                              imageOpacity: 100,
                               imageBorderRadius: 8,
                               imageBlendMode: "normal",
                               imageStrokeColor: undefined,
@@ -416,6 +548,17 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
           )}
         </div>
       </div>
+
+      <PaperTapesDialog open={paperTapesOpen} onOpenChange={setPaperTapesOpen} />
+
+      <CssPresetDialog
+        open={overlaysOpen}
+        onOpenChange={setOverlaysOpen}
+        title="Overlays"
+        description="Radial glows and gradient decorations. Click one to add it as an editable layer."
+        presets={OVERLAY_PRESETS}
+        onUse={addOverlay}
+      />
     </div>
   )
 }

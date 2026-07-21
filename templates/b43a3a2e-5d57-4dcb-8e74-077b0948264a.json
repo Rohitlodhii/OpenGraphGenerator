@@ -1,0 +1,161 @@
+{
+  "id": "b43a3a2e-5d57-4dcb-8e74-077b0948264a",
+  "name": "Whitegrain",
+  "createdAt": "2026-07-21T10:47:53.290Z",
+  "dimensions": {
+    "width": 1200,
+    "height": 630
+  },
+  "payload": {
+    "background": {
+      "backgroundColor": "#111111",
+      "backgroundType": "solid"
+    },
+    "solidColor": {
+      "color": "#ffffff",
+      "blur": 89,
+      "grain": 0.37
+    },
+    "mesh": {
+      "baseColor": "#0f172a",
+      "blobs": [
+        {
+          "x": 0.5437737304705942,
+          "y": 0.5296415023496717,
+          "radius": 402.58207477180724,
+          "color": "#0091ff",
+          "opacity": 1,
+          "visible": true
+        },
+        {
+          "x": 0.7672317284729724,
+          "y": 0.5405711413688434,
+          "radius": 567.3347658291391,
+          "color": "#4dd091",
+          "opacity": 1,
+          "visible": true
+        },
+        {
+          "x": 0.4527853935985401,
+          "y": 0.39929260893996366,
+          "radius": 634.5685758074742,
+          "color": "#002b50",
+          "opacity": 1,
+          "visible": true
+        }
+      ],
+      "blur": 150,
+      "grain": 0.1
+    },
+    "image": {
+      "src": null,
+      "blur": 0,
+      "grain": 0,
+      "saturation": 1,
+      "contrast": 1,
+      "brightness": 1
+    },
+    "svgGradient": {
+      "pathsIndex": 0,
+      "visible": true,
+      "fills": [
+        "#9E6D04",
+        "#DD9700",
+        "#FFAE00",
+        "#FFBF33",
+        "#FFCF68",
+        "#FFE7B3"
+      ],
+      "blur": 50,
+      "backgroundColor": "#ffffff",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    "gradient": {
+      "appliedGradientId": null
+    },
+    "canvas": {
+      "objects": [
+        {
+          "id": "a5fc3183-bc87-4e33-bf7c-08cc7dfba7c0",
+          "type": "text",
+          "content": "Acmelabs.",
+          "x": 73.42857142857143,
+          "y": 170.57142857142844,
+          "width": 360,
+          "height": 90,
+          "zIndex": 1,
+          "fontSize": 66,
+          "fontFamily": "Poppins, sans-serif",
+          "fontWeight": 700,
+          "lineHeight": 1.05,
+          "letterSpacing": -4.5,
+          "fontOpacity": 100,
+          "fontStyle": "normal",
+          "textDecoration": "none",
+          "textAlign": "left",
+          "textIndent": 0,
+          "textColor": "#000000",
+          "textShadow": 0,
+          "textShadowColor": "#000000"
+        },
+        {
+          "id": "d4943844-44bc-4bff-a4fc-8ee0850fdd66",
+          "type": "text",
+          "content": "your description goes here",
+          "x": 74.85714285714286,
+          "y": 237.7142857142855,
+          "width": 554.2857142857143,
+          "height": 65.71428571428571,
+          "zIndex": 2,
+          "fontSize": 26,
+          "fontFamily": "Poppins, sans-serif",
+          "fontWeight": 200,
+          "lineHeight": 1.15,
+          "letterSpacing": -1.5,
+          "fontOpacity": 100,
+          "fontStyle": "normal",
+          "textDecoration": "none",
+          "textAlign": "left",
+          "textIndent": 0,
+          "textColor": "#000000",
+          "textShadow": 0,
+          "textShadowColor": "#000000"
+        },
+        {
+          "id": "b980d615-fef5-4f58-9482-867e74eb1e24",
+          "type": "shape",
+          "shapeType": "rectangle",
+          "fill": "#150e0e",
+          "shapeOpacity": 100,
+          "blur": 0,
+          "shapeShadow": 0,
+          "x": 498.57142857142856,
+          "y": 161.42857142857133,
+          "width": 731.4285714285714,
+          "height": 601.4285714285714,
+          "zIndex": 4
+        },
+        {
+          "id": "f3948e9a-b931-4002-aadc-ecd661d900f8",
+          "type": "shape",
+          "shapeType": "circle",
+          "fill": "#2d2a2a",
+          "shapeOpacity": 100,
+          "blur": 40,
+          "shapeShadow": 0,
+          "x": 491.42857142857184,
+          "y": 127.14285714285727,
+          "width": 781.4285714285714,
+          "height": 781.4285714285714,
+          "zIndex": 3
+        }
+      ],
+      "selectedObjectId": "b980d615-fef5-4f58-9482-867e74eb1e24"
+    },
+    "dimensions": {
+      "width": 1200,
+      "height": 630
+    }
+  }
+}

@@ -27,7 +27,7 @@ function makeNoise(w: number, h: number): string {
 }
 
 const ImagePreviewer: React.FC<ImagePreviewerProps> = ({ width, height, className }) => {
-  const { src, blur, grain, saturation, contrast, brightness } = useImageStore()
+  const { src, blur, grain, saturation, contrast, brightness, opacity } = useImageStore()
   const [noiseUrl, setNoiseUrl] = useState<string | null>(null)
 
   useEffect(() => {
@@ -53,6 +53,7 @@ const ImagePreviewer: React.FC<ImagePreviewerProps> = ({ width, height, classNam
             height,
             objectFit: 'cover',
             filter,
+            opacity: Math.max(0, Math.min(100, opacity)) / 100,
           }}
         />
       )}

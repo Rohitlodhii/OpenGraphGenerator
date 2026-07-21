@@ -1,0 +1,85 @@
+import { create } from "zustand"
+
+// Static library of paper & tape textures. Each entry is a named remote PNG/SVG
+// that the user can drop onto the canvas as a fully-editable image object.
+export type TextureCategory = "paper" | "tape" | "misc"
+
+export interface TextureAsset {
+  id: string
+  name: string
+  url: string
+  category: TextureCategory
+}
+
+export const textureAssets: TextureAsset[] = [
+  {
+    id: "paperone",
+    name: "Paper One",
+    category: "paper",
+    url: "https://tfzejvlzecqokaxxptlo.supabase.co/storage/v1/object/sign/Fastdroid/paperone.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80YTg3OGM0ZC01MWVhLTQ3NTUtYjRkOC1lMmIwYzFiYzgwYTgiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJGYXN0ZHJvaWQvcGFwZXJvbmUucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NDYxODE2NSwiZXhwIjoxODQ3NjkwMTY1fQ.hragq1p72SnmMEU_y2iCmnYQ56DdFAovRH8w6DGrDaU",
+  },
+  {
+    id: "papertwo",
+    name: "Paper Two",
+    category: "paper",
+    url: "https://tfzejvlzecqokaxxptlo.supabase.co/storage/v1/object/sign/Fastdroid/paperthree.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80YTg3OGM0ZC01MWVhLTQ3NTUtYjRkOC1lMmIwYzFiYzgwYTgiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJGYXN0ZHJvaWQvcGFwZXJ0aHJlZS5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg0NjE4NTYwLCJleHAiOjE4MTYxNTQ1NjB9.CjavJ9afJXgIchlMjlp6dqCsU46_zm4aDA4lQ3w70AA",
+  },
+  {
+    id: "tornpaper",
+    name: "Torn Paper",
+    category: "paper",
+    url: "https://tfzejvlzecqokaxxptlo.supabase.co/storage/v1/object/sign/Fastdroid/tornpaper.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80YTg3OGM0ZC01MWVhLTQ3NTUtYjRkOC1lMmIwYzFiYzgwYTgiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJGYXN0ZHJvaWQvdG9ybnBhcGVyLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODQ2MTgyMzgsImV4cCI6MTgxNjE1NDIzOH0._GY6VIMYhzPqirtoeyyqMqwnUK_HQtIQ53utY4qSjnM",
+  },
+  {
+    id: "trees",
+    name: "Trees",
+    category: "misc",
+    url: "https://tfzejvlzecqokaxxptlo.supabase.co/storage/v1/object/sign/Fastdroid/trees.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80YTg3OGM0ZC01MWVhLTQ3NTUtYjRkOC1lMmIwYzFiYzgwYTgiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJGYXN0ZHJvaWQvdHJlZXMucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NDYxODI1MSwiZXhwIjoxODE2MTU0MjUxfQ.imUJPDB2z6X4-B2aCSRIrSSqV4pXZin5i_aR7WonNb0",
+  },
+  {
+    id: "wood",
+    name: "Wood Platform",
+    category: "misc",
+    url: "https://tfzejvlzecqokaxxptlo.supabase.co/storage/v1/object/sign/Fastdroid/wood.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80YTg3OGM0ZC01MWVhLTQ3NTUtYjRkOC1lMmIwYzFiYzgwYTgiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJGYXN0ZHJvaWQvd29vZC5wbmciLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg0NjE4MjYxLCJleHAiOjE4MTYxNTQyNjF9.V9rbdpvd2zpWuluisOZbMtRUjOGmzLoBBHt104R0vEs",
+  },
+  {
+    id: "tape1",
+    name: "Colorful Tape",
+    category: "tape",
+    url: "https://tfzejvlzecqokaxxptlo.supabase.co/storage/v1/object/sign/Fastdroid/Colorful%20Tape%20-%2021.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80YTg3OGM0ZC01MWVhLTQ3NTUtYjRkOC1lMmIwYzFiYzgwYTgiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJGYXN0ZHJvaWQvQ29sb3JmdWwgVGFwZSAtIDIxLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODQ2MTg3MDcsImV4cCI6MTgxNjE1NDcwN30.-CyGdTArE0G6CQ2_bZTO2gKSxO5BfekhdxyS0YsZBZQ",
+  },
+  {
+    id: "tape2",
+    name: "Duct Tape 03",
+    category: "tape",
+    url: "https://tfzejvlzecqokaxxptlo.supabase.co/storage/v1/object/sign/Fastdroid/Duct%20Tape%20-%2003.svg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80YTg3OGM0ZC01MWVhLTQ3NTUtYjRkOC1lMmIwYzFiYzgwYTgiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJGYXN0ZHJvaWQvRHVjdCBUYXBlIC0gMDMuc3ZnIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NDYxODcxOCwiZXhwIjoxODE2MTU0NzE4fQ.xa0IJylffNA53UY4JbxgF6VABdsrPSPWnoc48bLZxTw",
+  },
+  {
+    id: "tape3",
+    name: "Duct Tape 07",
+    category: "tape",
+    url: "https://tfzejvlzecqokaxxptlo.supabase.co/storage/v1/object/sign/Fastdroid/Duct%20Tape%20-%2007.svg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80YTg3OGM0ZC01MWVhLTQ3NTUtYjRkOC1lMmIwYzFiYzgwYTgiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJGYXN0ZHJvaWQvRHVjdCBUYXBlIC0gMDcuc3ZnIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NDYxODcyNiwiZXhwIjoxODE2MTU0NzI2fQ.i2-ba67Dp9QddadnOfqkS5ND_CoUQgTfPUyL-gT1QP8",
+  },
+  {
+    id: "tape4",
+    name: "Duct Tape 25",
+    category: "tape",
+    url: "https://tfzejvlzecqokaxxptlo.supabase.co/storage/v1/object/sign/Fastdroid/Duct%20Tape%20-%2025.svg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80YTg3OGM0ZC01MWVhLTQ3NTUtYjRkOC1lMmIwYzFiYzgwYTgiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJGYXN0ZHJvaWQvRHVjdCBUYXBlIC0gMjUuc3ZnIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NDYxODc0MiwiZXhwIjoxODE2MTU0NzQyfQ.c_yd2v7c5bYV4WlTfK23bMhsr-Fs2ljCizV2xdQuDwE",
+  },
+  {
+    id: "tape5",
+    name: "Tape",
+    category: "tape",
+    url: "https://tfzejvlzecqokaxxptlo.supabase.co/storage/v1/object/sign/Fastdroid/tape1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80YTg3OGM0ZC01MWVhLTQ3NTUtYjRkOC1lMmIwYzFiYzgwYTgiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJGYXN0ZHJvaWQvdGFwZTEucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NDYxODc1MywiZXhwIjoxODE2MTU0NzUzfQ.oKuU1EZ2w3D4FLY4PL3yJhFYV4xuxw5HvvSiER3tj00",
+  },
+]
+
+type TextureStore = {
+  assets: TextureAsset[]
+  getByCategory: (category: TextureCategory) => TextureAsset[]
+}
+
+export const useTextureStore = create<TextureStore>(() => ({
+  assets: textureAssets,
+  getByCategory: (category) => textureAssets.filter((a) => a.category === category),
+}))

@@ -23,6 +23,8 @@ import AuthDialog from "@/components/workspace/AuthDialog"
 import { useLayersPanelStore } from "@/store/layerspanelstore"
 import { useCurrentProjectStore } from "@/store/currentprojectstore"
 import { updateDbProject, updateLocalProject } from "@/lib/projects"
+import { buildPayload } from "@/lib/design-payload"
+import { syncProjectImagesInBackground } from "@/lib/project-image-sync"
 import { authClient } from "@/lib/auth-client"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
@@ -79,8 +81,9 @@ const Navbar = () => {
     if (saveState === "saving") return
     setSaveState("saving")
     try {
+      const savedPayload = signedIn ? buildPayload() : null
       const ok = signedIn
-        ? await updateDbProject(currentId, currentName)
+        ? await updateDbProject(currentId, currentName, savedPayload ?? undefined)
         : updateLocalProject(currentId, currentName)
       // Project vanished (deleted elsewhere); reopen dialog to re-create it.
       if (!ok) {
@@ -92,6 +95,15 @@ const Navbar = () => {
       setSaveState("saved")
       if (savedTimer.current) clearTimeout(savedTimer.current)
       savedTimer.current = setTimeout(() => setSaveState("idle"), 1500)
+      if (signedIn && savedPayload) {
+        setTimeout(() => {
+          void syncProjectImagesInBackground(
+            currentId,
+            currentName,
+            savedPayload,
+          )
+        }, 250)
+      }
     } catch {
       setSaveState("idle")
       setSaveOpen(true)

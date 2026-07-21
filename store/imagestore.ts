@@ -7,6 +7,7 @@ export interface ImageState {
   saturation: number
   contrast: number
   brightness: number
+  opacity: number
 
   setSrc: (s: string | null) => void
   setBlur: (b: number) => void
@@ -14,6 +15,7 @@ export interface ImageState {
   setSaturation: (s: number) => void
   setContrast: (c: number) => void
   setBrightness: (b: number) => void
+  setOpacity: (o: number) => void
 }
 
 export const useImageStore = create<ImageState>((set) => ({
@@ -23,6 +25,7 @@ export const useImageStore = create<ImageState>((set) => ({
   saturation: 1,
   contrast: 1,
   brightness: 1,
+  opacity: 100,
 
   setSrc: (s) => set({ src: s }),
   setBlur: (b) => set({ blur: b }),
@@ -30,4 +33,5 @@ export const useImageStore = create<ImageState>((set) => ({
   setSaturation: (s) => set({ saturation: s }),
   setContrast: (c) => set({ contrast: c }),
   setBrightness: (b) => set({ brightness: b }),
+  setOpacity: (o) => set({ opacity: o }),
 }))
