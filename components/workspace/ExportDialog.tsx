@@ -34,6 +34,10 @@ type Props = {
 
 const SCALES = [1, 2, 3] as const
 
+// Skips the grid alignment overlay (and anything else marked export-ignore)
+// so it never ends up baked into the exported image.
+const exportFilter = (node: HTMLElement) => node.dataset?.exportIgnore !== "true"
+
 const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [format, setFormat] = React.useState<Format>("png")
   const [quality, setQuality] = React.useState(92)
@@ -70,7 +74,7 @@ const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
 
     try {
       if (format === "png") {
-        return await toPng(stage, { cacheBust: true, pixelRatio: scale })
+        return await toPng(stage, { cacheBust: true, pixelRatio: scale, filter: exportFilter })
       }
       if (format === "jpeg") {
         return await toJpeg(stage, {
@@ -78,9 +82,10 @@ const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           pixelRatio: scale,
           quality: quality / 100,
           backgroundColor: "#ffffff",
+          filter: exportFilter,
         })
       }
-      return await toSvg(stage, { cacheBust: true })
+      return await toSvg(stage, { cacheBust: true, filter: exportFilter })
     } finally {
       setSelectedObjectId(previousSelected)
     }
@@ -221,7 +226,7 @@ const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
         </DialogPanel>
 
         {(cloudStatus || (isRaster && !ownKey)) && (
-          <div className="px-6 text-sm text-muted-foreground">
+          <div className="px-6 py-2 text-sm text-muted-foreground/70">
             {cloudStatus ?? (
               <span className="tabular-nums">
                 {remaining} of {FREE_LIMIT} free cloud uploads left.

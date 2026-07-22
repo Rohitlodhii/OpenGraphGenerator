@@ -1,10 +1,11 @@
-import type { SVGProps } from "react";
+import { useId, type SVGProps } from "react";
 
 export interface iPadProProps extends SVGProps<SVGSVGElement> {
   width?: number;
   height?: number;
   src?: string;
   fit?: "cover" | "contain";
+  theme?: "light" | "dark";
 }
 
 export default function iPadPro({
@@ -12,8 +13,13 @@ export default function iPadPro({
   height = 400,
   src,
   fit = "cover",
+  theme = "dark",
   ...props
 }: iPadProProps) {
+  // Unique per instance so multiple mockups don't collide on the same
+  // <clipPath> id (see mac.tsx for the failure mode this avoids).
+  const clipId = `roundedCorners-${useId()}`;
+  const bezelFill = theme === "light" ? "#f5f5f7" : "#000";
   return (
     <svg
       width={width}
@@ -29,7 +35,7 @@ export default function iPadPro({
       />
 
       <rect
-        fill="#000"
+        fill={bezelFill}
         x="18.58"
         y="15.94"
         width="482.84"
@@ -55,14 +61,14 @@ export default function iPadPro({
           width="457.25"
           height="342.87"
           preserveAspectRatio={fit === "contain" ? "xMidYMid meet" : "xMidYMid slice"}
-          clipPath="url(#roundedCorners)"
+          clipPath={`url(#${clipId})`}
         />
       )}
       <circle fill="#0a1054" cx="245.1" cy="22.23" r="2.44" />
       <circle fill="#333" cx="274.98" cy="22.23" r=".88" />
 
       <defs>
-        <clipPath id="roundedCorners">
+        <clipPath id={clipId}>
           <rect
             fill="#ffffff"
             x="31.37"

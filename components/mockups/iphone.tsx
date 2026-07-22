@@ -1,10 +1,11 @@
-import type { SVGProps } from "react";
+import { useId, type SVGProps } from "react";
 
 export interface Iphone16Props extends SVGProps<SVGSVGElement> {
   width?: number;
   height?: number;
   src?: string;
   fit?: "cover" | "contain";
+  theme?: "light" | "dark";
 }
 
 export default function Iphone16({
@@ -12,8 +13,16 @@ export default function Iphone16({
   height = 400,
   src,
   fit = "cover",
+  theme = "dark",
   ...props
 }: Iphone16Props) {
+  // Unique per instance so multiple mockups don't collide on the same
+  // <clipPath> id (see mac.tsx for the failure mode this avoids).
+  const clipId = `roundedCorners-${useId()}`;
+  // Camera notch/dot stay black — that cutout is black on real devices
+  // regardless of case color — only the case body/edge swap with theme.
+  const bodyFill = theme === "light" ? "#f2f2f7" : "#000000";
+  const edgeFill = theme === "light" ? "#d1d1d6" : "#303333";
   return (
     <svg
       width={width}
@@ -24,11 +33,11 @@ export default function Iphone16({
       {...props}
     >
       <path
-        fill="#303333"
+        fill={edgeFill}
         d="M196.11,128.09c0-.25-.2-.45-.45-.45-.11.04-.37.03-.69,0V36.69c0-17.84-14.46-32.31-32.31-32.31H37.48C19.63,4.39,5.17,18.85,5.17,36.69v48.99c-.3.02-.55.03-.66-.02-.25,0-.45.2-.45.45,0,0,0,17.29,0,17.29-.03.41.5.49,1.11.48v13.63c-.61,0-1.14.08-1.11.48,0,0,0,28.54,0,28.54-.03.42.5.49,1.11.48v7.95c-.61,0-1.14.08-1.11.48,0,0,0,28.54,0,28.54-.03.42.5.49,1.11.48v178.86c0,17.84,14.46,32.31,32.31,32.31h125.2c17.84,0,32.31-14.46,32.31-32.31v-188.87c.32-.02.58-.03.69.04,1.26.1.03-45.94.45-46.38ZM186.07,362.63c0,13.56-10.99,24.56-24.56,24.56H38.64c-13.56,0-24.56-10.99-24.56-24.56V37.37c0-13.56,10.99-24.56,24.56-24.56h122.87c13.56,0,24.56,10.99,24.56,24.56v325.26Z"
       />
       <path
-        fill="#000000"
+        fill={bodyFill}
         d="M161.38,7.29H38.78c-16.54,0-29.95,13.41-29.95,29.95v325.52c0,16.54,13.41,29.95,29.95,29.95h122.6c16.54,0,29.95-13.41,29.95-29.95V37.24c0-16.54-13.41-29.95-29.95-29.95ZM186.07,362.57c0,13.6-11.02,24.62-24.62,24.62H38.7c-13.6,0-24.62-11.02-24.62-24.62V37.43c0-13.6,11.02-24.62,24.62-24.62h122.75c13.6,0,24.62,11.02,24.62,24.62v325.14Z"
       />
 
@@ -51,7 +60,7 @@ export default function Iphone16({
           rx="24.62"
           ry="24.62"
           preserveAspectRatio={fit === "contain" ? "xMidYMid meet" : "xMidYMid slice"}
-          clipPath="url(#roundedCorners)"
+          clipPath={`url(#${clipId})`}
         />
       )}
       <path
@@ -64,7 +73,7 @@ export default function Iphone16({
       />
 
       <defs>
-        <clipPath id="roundedCorners">
+        <clipPath id={clipId}>
           <rect
             fill="#ffffff"
             x="14.08"

@@ -9,6 +9,7 @@ import { useGradientStore } from '@/store/gradientstore'
 import { libraryGradients } from '@/data/gradients'
 import RawGradientSvg from '../previewers/RawGradientSvg'
 import SvgGradientPanel from './SvgGradientPanel'
+import CustomGradientPanel from './CustomGradientPanel'
 import GradientLibraryDialog from './GradientLibraryDialog'
 
 
@@ -17,10 +18,10 @@ const items = [
   { label: "Solid Color", value: 'solid' },
   { label: "Mesh Gradients", value: 'mesh' },
   { label : "SVG Gradients" , value : 'Svg Gradient'},
-  { label: "Presets", value: 'presets' },
+  { label: "Custom Gradient", value: 'customGradient' },
 ]
 
-type SupportedBackgroundType = 'solid' | 'mesh' | 'Svg Gradient'
+type SupportedBackgroundType = 'solid' | 'mesh' | 'Svg Gradient' | 'customGradient'
 
 type BackgroundPanelProps = {
   isOpen?: boolean
@@ -33,8 +34,20 @@ const BackgroundPanel = ({ isOpen, onToggle, chromeless = false }: BackgroundPan
   const backgroundType = useBackgroundStore((s) => s.backgroundType)
   const appliedGradientId = useGradientStore((s) => s.appliedGradientId)
   const setAppliedGradient = useGradientStore((s) => s.setAppliedGradient)
-  const [selected, setSelected] = useState<string>('solid');
   const [libraryOpen, setLibraryOpen] = useState(false)
+
+  // The dropdown always mirrors whatever is actually previewed on the canvas
+  // instead of tracking its own state, so switching tabs and coming back
+  // shows the real selection (solid/mesh/svg gradient) rather than resetting
+  // to "solid". Non-editable types (library gradient, image) fall back to
+  // solid since they aren't represented in this dropdown.
+  const selected: SupportedBackgroundType =
+    backgroundType === 'solid' ||
+    backgroundType === 'mesh' ||
+    backgroundType === 'Svg Gradient' ||
+    backgroundType === 'customGradient'
+      ? backgroundType
+      : 'solid'
 
   // A library gradient is "active" when it's applied AND the background is
   // actually showing it. While active, the whole panel collapses to just the
@@ -45,8 +58,12 @@ const BackgroundPanel = ({ isOpen, onToggle, chromeless = false }: BackgroundPan
       : null
 
   const handleSelectionChange = (value: string) => {
-    setSelected(value)
-    if (value === 'solid' || value === 'mesh' || value === 'Svg Gradient') {
+    if (
+      value === 'solid' ||
+      value === 'mesh' ||
+      value === 'Svg Gradient' ||
+      value === 'customGradient'
+    ) {
       setBackgroundType(value as SupportedBackgroundType)
     }
   }
@@ -55,11 +72,7 @@ const BackgroundPanel = ({ isOpen, onToggle, chromeless = false }: BackgroundPan
   // selection (solid unless the user had picked another editable type).
   const clearGradient = () => {
     setAppliedGradient(null)
-    const fallback =
-      selected === 'solid' || selected === 'mesh' || selected === 'Svg Gradient'
-        ? (selected as SupportedBackgroundType)
-        : 'solid'
-    setBackgroundType(fallback)
+    setBackgroundType(selected)
   }
 
   // Shown in place of the whole panel while a library gradient is applied.
@@ -127,7 +140,7 @@ const BackgroundPanel = ({ isOpen, onToggle, chromeless = false }: BackgroundPan
 
   const typeSelect = (
     <Select
-      defaultValue={'solid'}
+      value={selected}
       onValueChange={(v) => handleSelectionChange(v as string)}
     >
       <SelectTrigger
@@ -156,6 +169,7 @@ const BackgroundPanel = ({ isOpen, onToggle, chromeless = false }: BackgroundPan
       {selected === 'solid' && <SolidColorPanel />}
       {selected === 'mesh' && <NewBackground />}
       {selected === 'Svg Gradient' && <SvgGradientPanel />}
+      {selected === 'customGradient' && <CustomGradientPanel />}
       {gradientSection}
     </>
   )

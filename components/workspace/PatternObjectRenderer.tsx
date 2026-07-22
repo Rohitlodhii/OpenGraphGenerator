@@ -1,21 +1,7 @@
 "use client"
 
 import React from "react"
-import {
-  ArrowUp,
-  ArrowUpToLine,
-  ArrowDown,
-  ArrowDownToLine,
-  Trash2,
-} from "lucide-react"
-import { CanvasObject, useCanvasStore } from "@/store/canvasstore"
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "../ui/context-menu"
+import { CanvasObject } from "@/store/canvasstore"
 import {
   buildPatternStyle,
   DEFAULT_PATTERN_COLOR,
@@ -28,17 +14,11 @@ type PatternObjectRendererProps = {
 }
 
 // Renders a pattern object as a full-canvas tiled overlay. It isn't draggable
-// or resizable (it covers the whole canvas) but participates in the shared
-// zIndex layering system, so it can be moved above/below other objects.
+// or resizable (it covers the whole canvas) and is intentionally unselectable
+// (pointer-events: none) since it sits on top of every other object and would
+// otherwise steal clicks meant for them. Layer controls (color/scale/opacity/
+// reorder/remove) live in PatternsPanel instead of a canvas context menu.
 const PatternObjectRenderer: React.FC<PatternObjectRendererProps> = ({ object, order }) => {
-  const removeObject = useCanvasStore((state) => state.removeObject)
-  const bringForward = useCanvasStore((state) => state.bringForward)
-  const sendBackward = useCanvasStore((state) => state.sendBackward)
-  const bringToFront = useCanvasStore((state) => state.bringToFront)
-  const sendToBack = useCanvasStore((state) => state.sendToBack)
-  const selectedObjectId = useCanvasStore((state) => state.selectedObjectId)
-  const setSelectedObjectId = useCanvasStore((state) => state.setSelectedObjectId)
-
   const opacity = Math.max(0, Math.min(100, object.patternOpacity ?? 100)) / 100
   const patternStyle = buildPatternStyle(object.patternType ?? "dots", {
     width: 1200,
@@ -46,74 +26,16 @@ const PatternObjectRenderer: React.FC<PatternObjectRendererProps> = ({ object, o
     size: object.patternScale ?? DEFAULT_PATTERN_SCALE,
     color: object.patternColor ?? DEFAULT_PATTERN_COLOR,
   })
-  const isSelected = selectedObjectId === object.id
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger
-        className="canvas-object absolute inset-0"
-        style={{
-          zIndex: object.zIndex ?? order + 1,
-          outline: isSelected ? "2px solid var(--primary)" : undefined,
-          outlineOffset: -2,
-        }}
-        onMouseDown={(event) => {
-          event.stopPropagation()
-          setSelectedObjectId(object.id)
-        }}
-      >
-        <span
-          className="pointer-events-none absolute inset-0"
-          style={{
-            ...patternStyle,
-            opacity,
-          }}
-        />
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem
-          onClick={() => {
-            setSelectedObjectId(object.id)
-            bringToFront(object.id)
-          }}
-        >
-          <ArrowUpToLine />
-          Bring to front
-        </ContextMenuItem>
-        <ContextMenuItem
-          onClick={() => {
-            setSelectedObjectId(object.id)
-            bringForward(object.id)
-          }}
-        >
-          <ArrowUp />
-          Bring forward
-        </ContextMenuItem>
-        <ContextMenuItem
-          onClick={() => {
-            setSelectedObjectId(object.id)
-            sendBackward(object.id)
-          }}
-        >
-          <ArrowDown />
-          Send backward
-        </ContextMenuItem>
-        <ContextMenuItem
-          onClick={() => {
-            setSelectedObjectId(object.id)
-            sendToBack(object.id)
-          }}
-        >
-          <ArrowDownToLine />
-          Send to back
-        </ContextMenuItem>
-        <ContextMenuSeparator />
-        <ContextMenuItem variant="destructive" onClick={() => removeObject(object.id)}>
-          <Trash2 />
-          Remove
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+    <span
+      className="pointer-events-none absolute inset-0"
+      style={{
+        zIndex: object.zIndex ?? order + 1,
+        ...patternStyle,
+        opacity,
+      }}
+    />
   )
 }
 

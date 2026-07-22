@@ -7,6 +7,7 @@ import SolidColorPreviewer from "../previewers/SolidColorPreviewer"
 import ImagePreviewer from "../previewers/ImagePreviewer"
 import SvgGradientPreviewer from "../previewers/SvgGradientPreviewer"
 import LightGradientPreviewer from "../previewers/LightGradientPreviewer"
+import CustomGradientPreviewer from "../previewers/CustomGradientPreviewer"
 
 type BackgroundRendererProps = {
   width: number
@@ -32,6 +33,9 @@ const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({ width, height }
       )}
       {backgroundType === "mesh" && (
         <MeshGradientBlob width={width} height={height} />
+      )}
+      {backgroundType === "customGradient" && (
+        <CustomGradientPreviewer width={width} height={height} />
       )}
     </div>
   )

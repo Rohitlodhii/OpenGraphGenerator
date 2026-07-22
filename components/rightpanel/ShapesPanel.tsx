@@ -19,6 +19,9 @@ import ColorPopup from "../helpers/colorpopup"
 import SliderWithInput from "../helpers/SliderWithInput"
 import { CanvasObject, CanvasShapeType, useCanvasStore } from "@/store/canvasstore"
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "../ui/accordion"
+import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "../ui/select"
+import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group"
+import { buildShapeGradientCss, SHAPE_GRADIENT_DIRECTIONS } from "@/lib/shape-gradient"
 import { blobs, blobAspect, BlobDef } from "@/data/blobs"
 import { motifs, MotifDef } from "@/data/motifs"
 import { abstractShapes, AbstractShapeDef } from "@/data/abstract-shapes"
@@ -33,6 +36,7 @@ const shapeOptions: { label: string; value: CanvasShapeType; icon: React.ReactNo
   { label: "Square", value: "square", icon: <Square className="h-4 w-4" /> },
   { label: "Circle", value: "circle", icon: <Circle className="h-4 w-4" /> },
   { label: "Triangle", value: "triangle", icon: <Triangle className="h-4 w-4" /> },
+  { label: "Line", value: "line", icon: <Minus className="h-4 w-4" /> },
 ]
 
 const shapeDefaults: Record<CanvasShapeType, { width: number; height: number }> = {
@@ -40,7 +44,10 @@ const shapeDefaults: Record<CanvasShapeType, { width: number; height: number }> 
   square: { width: 160, height: 160 },
   circle: { width: 160, height: 160 },
   triangle: { width: 180, height: 160 },
+  line: { width: 200, height: 4 },
 }
+
+const DEFAULT_GRADIENT_COLORS = ["#6366f1", "#ec4899"]
 
 const createId = () => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -284,7 +291,7 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
         }
       >
         <div className="w-full flex flex-col gap-3">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {shapeOptions.map((shape) => (
               <Button
                 key={shape.value}
@@ -408,7 +415,15 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                     <div className="flex items-center gap-2">
                       <div
                         className="h-4 w-4 rounded-sm border border-border"
-                        style={{ backgroundColor: shape.fill ?? "#ffffff" }}
+                        style={{
+                          background:
+                            shape.shapeFillMode === "gradient"
+                              ? buildShapeGradientCss(
+                                  shape.shapeGradientDirection ?? "to-b",
+                                  shape.shapeGradientColors ?? DEFAULT_GRADIENT_COLORS,
+                                )
+                              : shape.fill ?? "#ffffff",
+                        }}
                       />
                       <div
                         role="button"
@@ -435,14 +450,95 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                   <AccordionPanel className="pb-0 border-t border-border">
                     <div className="flex flex-col gap-1.5 p-2">
                       <span className="text-[11px] font-medium  tracking-wide text-muted-foreground">
-                        Background Color
+                        Fill
                       </span>
-                      <ColorPopup
-                        color={shape.fill ?? "#ffffff"}
-                        onChange={(hex) => updateObject(shape.id, { fill: hex })}
-                        label=""
-                        className=""
-                      />
+                      <ToggleGroup
+                        variant="outline"
+                        value={[shape.shapeFillMode ?? "solid"]}
+                        onValueChange={(v: string[]) => {
+                          if (v[0]) updateObject(shape.id, { shapeFillMode: v[0] as "solid" | "gradient" })
+                        }}
+                        className="w-full *:flex-1"
+                      >
+                        <ToggleGroupItem value="solid">Solid</ToggleGroupItem>
+                        <ToggleGroupItem value="gradient">Gradient</ToggleGroupItem>
+                      </ToggleGroup>
+
+                      {shape.shapeFillMode === "gradient" ? (
+                        <>
+                          <div className="flex flex-col gap-2">
+                            {(shape.shapeGradientColors ?? DEFAULT_GRADIENT_COLORS).map((color, index, colors) => (
+                              <div key={index} className="flex items-center gap-2">
+                                <div className="flex-1">
+                                  <ColorPopup
+                                    color={color}
+                                    onChange={(hex) => {
+                                      const next = [...colors]
+                                      next[index] = hex
+                                      updateObject(shape.id, { shapeGradientColors: next })
+                                    }}
+                                    label=""
+                                    className="bg-secondary"
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  className="shrink-0 text-destructive disabled:pointer-events-none disabled:opacity-30"
+                                  disabled={colors.length <= 2}
+                                  aria-label="Remove color"
+                                  onClick={() =>
+                                    updateObject(shape.id, {
+                                      shapeGradientColors: colors.filter((_, i) => i !== index),
+                                    })
+                                  }
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ))}
+
+                            {(shape.shapeGradientColors ?? DEFAULT_GRADIENT_COLORS).length < 3 && (
+                              <button
+                                type="button"
+                                className="flex h-8 w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border text-xs text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+                                onClick={() => {
+                                  const colors = shape.shapeGradientColors ?? DEFAULT_GRADIENT_COLORS
+                                  updateObject(shape.id, {
+                                    shapeGradientColors: [...colors, "#22d3ee"],
+                                  })
+                                }}
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                                Add color
+                              </button>
+                            )}
+                          </div>
+                          <Select
+                            value={shape.shapeGradientDirection ?? "to-b"}
+                            onValueChange={(value) =>
+                              updateObject(shape.id, { shapeGradientDirection: value as CanvasObject["shapeGradientDirection"] })
+                            }
+                          >
+                            <SelectTrigger size="sm" className="h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectPopup>
+                              {SHAPE_GRADIENT_DIRECTIONS.map((direction) => (
+                                <SelectItem key={direction.value} value={direction.value}>
+                                  {direction.label}
+                                </SelectItem>
+                              ))}
+                            </SelectPopup>
+                          </Select>
+                        </>
+                      ) : (
+                        <ColorPopup
+                          color={shape.fill ?? "#ffffff"}
+                          onChange={(hex) => updateObject(shape.id, { fill: hex })}
+                          label=""
+                          className=""
+                        />
+                      )}
 
                       <span className="mt-1 text-[11px] font-medium  tracking-wide text-muted-foreground">
                         Positioning
@@ -475,9 +571,6 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                         <Button variant="secondary" size="sm" className={compactIconButton} onClick={() => updateShapeSize(shape, "dec")}>
                           <Minus className="h-4 w-4" />
                         </Button>
-                        <Button variant="secondary" size="sm" className={compactIconButton} onClick={() => updateShapeSize(shape, "inc")}>
-                          <Plus className="h-4 w-4" />
-                        </Button>
                         <span className="text-xs text-muted-foreground shrink-0">W</span>
                         <Input
                           type="number"
@@ -492,6 +585,9 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                           onChange={(event) => updateShapeNumber(shape, "height", event.target.value)}
                           className={sizeInput}
                         />
+                        <Button variant="secondary" size="sm" className={compactIconButton} onClick={() => updateShapeSize(shape, "inc")}>
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
 
                       <div className="mt-1 flex items-center gap-2">
@@ -530,6 +626,18 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                         minValue={0}
                         onChange={(vals) => updateObject(shape.id, { blur: vals[0] })}
                       />
+
+                      {shape.shapeType !== "circle" && shape.shapeType !== "triangle" && (
+                        <SliderWithInput
+                          key={`shape-radius-${shape.id}`}
+                          defaultValue={[shape.shapeBorderRadius ?? 0]}
+                          initialValue={[shape.shapeBorderRadius ?? 0]}
+                          label="Radius"
+                          maxValue={200}
+                          minValue={0}
+                          onChange={(vals) => updateObject(shape.id, { shapeBorderRadius: vals[0] })}
+                        />
+                      )}
 
                       <span className="mt-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                         Stroke

@@ -1,0 +1,131 @@
+{
+  "id": "da3b0676-b63c-4a8c-bf52-7f1a7ceef474",
+  "name": "GradientGrain",
+  "createdAt": "2026-07-22T17:00:07.043Z",
+  "dimensions": {
+    "width": 1200,
+    "height": 630
+  },
+  "payload": {
+    "background": {
+      "backgroundColor": "#111111",
+      "backgroundType": "customGradient"
+    },
+    "solidColor": {
+      "color": "#0f172a",
+      "blur": 0,
+      "grain": 0
+    },
+    "mesh": {
+      "baseColor": "#0f172a",
+      "blobs": [
+        {
+          "x": 0.14288305383181188,
+          "y": 0.2619873649888008,
+          "radius": 569.8213510781098,
+          "color": "#0091ff",
+          "opacity": 1,
+          "visible": true
+        },
+        {
+          "x": 0.7040018211823217,
+          "y": 0.137201477180253,
+          "radius": 602.4210948364012,
+          "color": "#4dd091",
+          "opacity": 1,
+          "visible": true
+        },
+        {
+          "x": 0.210131679540693,
+          "y": 0.430914356516393,
+          "radius": 305.0966370721021,
+          "color": "#002b50",
+          "opacity": 1,
+          "visible": true
+        }
+      ],
+      "blur": 150,
+      "grain": 0.1
+    },
+    "image": {
+      "src": null,
+      "blur": 0,
+      "grain": 0,
+      "saturation": 1,
+      "contrast": 1,
+      "brightness": 1,
+      "opacity": 100
+    },
+    "svgGradient": {
+      "pathsIndex": 1,
+      "visible": true,
+      "fills": [
+        "#05D67F",
+        "#6305D6",
+        "#043EE9",
+        "#1952FF",
+        "#2563EB",
+        "#60A5FA"
+      ],
+      "blur": 50,
+      "backgroundColor": "#000000",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    "gradient": {
+      "appliedGradientId": null
+    },
+    "customGradient": {
+      "mode": "radial",
+      "angle": 135,
+      "radialShape": "circle",
+      "stops": [
+        {
+          "id": "bb299b4b-416b-46fb-8fdf-b8e2568b314e",
+          "color": "#000000",
+          "position": 74,
+          "opacity": 100
+        },
+        {
+          "id": "7e872c57-3586-43da-bff3-2340b18ad896",
+          "color": "#ec4899",
+          "position": 44,
+          "opacity": 15
+        }
+      ],
+      "grain": 62
+    },
+    "canvas": {
+      "objects": [
+        {
+          "id": "dcb9a70a-ce67-45a7-918c-ce0d2601967b",
+          "type": "text",
+          "content": "Acmelabs",
+          "x": 414.85714285714266,
+          "y": 263.42857142857116,
+          "width": 360,
+          "height": 90,
+          "zIndex": 2,
+          "fontSize": 65,
+          "fontFamily": "'Instrument Serif', serif",
+          "fontWeight": 400,
+          "lineHeight": 1.15,
+          "letterSpacing": -2,
+          "fontOpacity": 100,
+          "fontStyle": "normal",
+          "textDecoration": "none",
+          "textAlign": "center",
+          "textIndent": 0,
+          "textColor": "#ffffff",
+          "textShadow": 0,
+          "textShadowColor": "#000000"
+        }
+      ],
+      "selectedObjectId": null
+    },
+    "dimensions": {
+      "width": 1200,
+      "height": 630
+    }
+  }
+}

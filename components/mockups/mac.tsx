@@ -1,10 +1,11 @@
-import type { SVGProps } from "react";
+import { useId, type SVGProps } from "react";
 
 export interface MacProps extends SVGProps<SVGSVGElement> {
   width?: number;
   height?: number;
   src?: string;
   fit?: "cover" | "contain";
+  theme?: "light" | "dark";
 }
 
 export default function Mac({
@@ -12,8 +13,20 @@ export default function Mac({
   height = 500,
   src,
   fit = "cover",
+  theme = "light",
   ...props
 }: MacProps) {
+  // Ids must be unique per instance — multiple mockups on the same canvas
+  // (or two Macs) otherwise share <clipPath>/<linearGradient> ids and the
+  // browser resolves url(#id) against whichever instance defined it first,
+  // leaving every other instance's screen image unclipped/invisible.
+  const uid = useId();
+  const clipId = `roundedCorners-${uid}`;
+  const gradientId = `linear-gradient-${uid}`;
+  const topBezel = theme === "dark" ? "#3a3a3c" : "#eeeeef";
+  const base = theme === "dark" ? "#1c1c1e" : "#d9d9db";
+  const foot = theme === "dark" ? "#2c2c2e" : "#dedfe1";
+  const footLine = theme === "dark" ? "#3a3a3c" : "#dedfe2";
   return (
     <svg
       width={width}
@@ -24,14 +37,14 @@ export default function Mac({
       {...props}
     >
       <rect
-        fill="url(#linear-gradient)"
+        fill={`url(#${gradientId})`}
         x="232.4"
         y="401.32"
         width="135.19"
         height="83.37"
       />
       <rect
-        fill="#dedfe2"
+        fill={footLine}
         x="234.32"
         y="489.39"
         width="17.21"
@@ -40,7 +53,7 @@ export default function Mac({
         ry=".15"
       />
       <rect
-        fill="#dedfe2"
+        fill={footLine}
         x="348.45"
         y="489.39"
         width="17.21"
@@ -48,13 +61,13 @@ export default function Mac({
         rx=".15"
         ry=".15"
       />
-      <rect fill="#dedfe1" x="232.4" y="484.69" width="135.19" height="5.61" />
+      <rect fill={foot} x="232.4" y="484.69" width="135.19" height="5.61" />
       <path
-        fill="#eeeeef"
+        fill={topBezel}
         d="M23.83,10.99h552.03c4.92,0,8.91,3.99,8.91,8.91v324.18H14.92V19.9c0-4.92,3.99-8.91,8.91-8.91Z"
       />
       <path
-        fill="#d9d9db"
+        fill={base}
         d="M23.83,343.94h552.03c4.92,0,8.91,3.99,8.91,8.91v48.47H14.92v-48.47c0-4.92,3.99-8.91,8.91-8.91Z"
         transform="translate(599.69 745.26) rotate(180)"
       />
@@ -90,12 +103,12 @@ export default function Mac({
           width="541.76"
           height="305.06"
           preserveAspectRatio={fit === "contain" ? "xMidYMid meet" : "xMidYMid slice"}
-          clipPath="url(#roundedCorners)"
+          clipPath={`url(#${clipId})`}
         />
       )}
 
       <defs>
-        <clipPath id="roundedCorners">
+        <clipPath id={clipId}>
           <rect
             fill="#ffffff"
             x="29.12"
@@ -109,7 +122,7 @@ export default function Mac({
       </defs>
 
       <linearGradient
-        id="linear-gradient"
+        id={gradientId}
         x1="300"
         y1="484.69"
         x2="300"

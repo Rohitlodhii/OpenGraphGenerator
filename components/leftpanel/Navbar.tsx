@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Group } from "@/components/ui/group"
 import { cn } from "@/lib/utils"
 import ExportDialog from "@/components/workspace/ExportDialog"
 import SaveProjectDialog from "@/components/workspace/SaveProjectDialog"
@@ -180,48 +181,40 @@ const Navbar = () => {
       </div>
 
       <div className="hidden items-center gap-1 md:flex">
-        <Button
-          variant="outline"
-          size="icon"
-          className="border-none outline-none ring-0"
-          aria-label="Export"
-          onClick={() => setExportOpen(true)}
-        >
-          <Download className="h-4 w-4" />
-        </Button>
+        <Group>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              "gap-2 outline-none ring-0 transition-colors duration-300",
+              saveState === "saved" &&
+                "bg-green-600 text-white hover:bg-green-600 hover:text-white",
+            )}
+            disabled={saveState === "saving"}
+            onClick={handleSave}
+          >
+            {saveState === "saving" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : saveState === "saved" ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            <span className="hidden sm:inline">
+              {saveState === "saving" ? "Saving..." : saveState === "saved" ? "Saved" : "Save"}
+            </span>
+          </Button>
 
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn(
-            "gap-2 border-none outline-none ring-0 transition-colors duration-300",
-            saveState === "saved" &&
-              "bg-green-600 text-white hover:bg-green-600 hover:text-white",
-          )}
-          disabled={saveState === "saving"}
-          onClick={handleSave}
-        >
-          {saveState === "saving" ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : saveState === "saved" ? (
-            <Check className="h-4 w-4" />
-          ) : (
-            <Save className="h-4 w-4" />
-          )}
-          <span className="hidden sm:inline">
-            {saveState === "saving" ? "Saving..." : saveState === "saved" ? "Saved" : "Save"}
-          </span>
-        </Button>
-
-        <Button
-          variant="outline"
-          className="border-none outline-none ring-0"
-          size="sm"
-          aria-label="Saved projects"
-          onClick={() => setSavedOpen(true)}
-        >
-          <FolderOpen className="h-3 w-3" />
-        </Button>
+          <Button
+            variant="outline"
+            className="outline-none ring-0"
+            size="sm"
+            aria-label="Saved projects"
+            onClick={() => setSavedOpen(true)}
+          >
+            <FolderOpen className="h-3 w-3" />
+          </Button>
+        </Group>
 
         <Button
           variant={layersOpen ? "secondary" : "outline"}

@@ -227,29 +227,34 @@ const ImageAddingPanel = ({ isOpen, onToggle, chromeless = false }: ImageAddingP
         }
       >
         <div className="w-full flex flex-col gap-3">
-          <label className="flex items-center justify-center gap-2 px-3 py-3 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition">
+          <label className="flex items-center justify-start gap-2 px-3 py-3 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition">
             <input type="file" accept="image/*" multiple onChange={handleFiles} className="hidden" />
             <Upload className="h-5 w-5 text-muted-foreground" />
             <span className="text-sm">Upload & Add Images</span>
           </label>
 
-          <button
-            type="button"
-            onClick={() => setPaperTapesOpen(true)}
-            className="flex items-center justify-center gap-2 px-3 py-3 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition"
-          >
-            <StickyNote className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm">Paper & Tapes</span>
-          </button>
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Add-ons</span>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => setPaperTapesOpen(true)}
+                className="flex items-center justify-start gap-2 px-3 py-2 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition"
+              >
+                <StickyNote className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm">Paper & Tapes</span>
+              </button>
 
-          <button
-            type="button"
-            onClick={() => setOverlaysOpen(true)}
-            className="flex items-center justify-center gap-2 px-3 py-3 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition"
-          >
-            <Layers className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm">Overlays</span>
-          </button>
+              <button
+                type="button"
+                onClick={() => setOverlaysOpen(true)}
+                className="flex items-center justify-start gap-2 px-3 py-2 bg-muted/40 border border-border/40 rounded-xl cursor-pointer hover:bg-muted transition"
+              >
+                <Layers className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm">Overlays</span>
+              </button>
+            </div>
+          </div>
 
           {backgroundType === "image" && backgroundSrc && (
             <div className="flex flex-col gap-2">

@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { Plus, Trash2 } from "lucide-react"
+import { ArrowUp, ArrowUpToLine, ArrowDown, ArrowDownToLine, Plus, Trash2 } from "lucide-react"
 import { Button } from "../ui/button"
 import ColorPopup from "../helpers/colorpopup"
 import SliderWithInput from "../helpers/SliderWithInput"
@@ -26,7 +26,8 @@ const createId = () => {
 }
 
 const PatternsPanel = ({ chromeless = false }: PatternsPanelProps) => {
-  const { objects, addObject, updateObject, removeObject } = useCanvasStore()
+  const { objects, addObject, updateObject, removeObject, bringForward, sendBackward, bringToFront, sendToBack } =
+    useCanvasStore()
   const [activePattern, setActivePattern] = React.useState<CanvasPatternType>("dots")
   const [color, setColor] = React.useState(DEFAULT_PATTERN_COLOR)
 
@@ -108,6 +109,10 @@ const PatternsPanel = ({ chromeless = false }: PatternsPanelProps) => {
                 pattern={pattern}
                 onUpdate={(updates) => updateObject(pattern.id, updates)}
                 onRemove={() => removeObject(pattern.id)}
+                onBringToFront={() => bringToFront(pattern.id)}
+                onBringForward={() => bringForward(pattern.id)}
+                onSendBackward={() => sendBackward(pattern.id)}
+                onSendToBack={() => sendToBack(pattern.id)}
               />
             ))}
           </div>
@@ -122,24 +127,46 @@ const PatternLayerControls = ({
   pattern,
   onUpdate,
   onRemove,
+  onBringToFront,
+  onBringForward,
+  onSendBackward,
+  onSendToBack,
 }: {
   pattern: CanvasObject
   onUpdate: (updates: Partial<CanvasObject>) => void
   onRemove: () => void
+  onBringToFront: () => void
+  onBringForward: () => void
+  onSendBackward: () => void
+  onSendToBack: () => void
 }) => {
   const label = PATTERNS.find((p) => p.type === pattern.patternType)?.label ?? "Pattern"
   return (
     <div className="flex flex-col gap-2 rounded-md border border-border bg-card p-2">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-medium capitalize">{label}</span>
-        <button
-          type="button"
-          className="text-destructive"
-          onClick={onRemove}
-          aria-label="Remove pattern"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button type="button" onClick={onBringToFront} aria-label="Bring to front" title="Bring to front">
+            <ArrowUpToLine className="h-4 w-4" />
+          </button>
+          <button type="button" onClick={onBringForward} aria-label="Bring forward" title="Bring forward">
+            <ArrowUp className="h-4 w-4" />
+          </button>
+          <button type="button" onClick={onSendBackward} aria-label="Send backward" title="Send backward">
+            <ArrowDown className="h-4 w-4" />
+          </button>
+          <button type="button" onClick={onSendToBack} aria-label="Send to back" title="Send to back">
+            <ArrowDownToLine className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            className="text-destructive"
+            onClick={onRemove}
+            aria-label="Remove pattern"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       <ColorPopup

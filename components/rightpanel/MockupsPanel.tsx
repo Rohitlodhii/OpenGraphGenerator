@@ -8,6 +8,7 @@ import ColorPopup from "../helpers/colorpopup"
 import { CanvasObject, useCanvasStore } from "@/store/canvasstore"
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "../ui/accordion"
 import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "../ui/select"
+import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group"
 import { mockups, getMockup, MockupDef } from "../mockups/registry"
 
 type MockupsPanelProps = {
@@ -58,6 +59,7 @@ const MockupsPanel = ({ chromeless = false }: MockupsPanelProps) => {
       mockupId: def.id,
       mockupImageFit: "cover",
       mockupUrl: def.hasUrl ? "https://example.com" : undefined,
+      mockupTheme: def.defaultTheme,
       fill: DEFAULT_SCREEN_COLOR,
       x: 60,
       y: 60,
@@ -127,6 +129,7 @@ const MockupThumb = ({ def }: { def: MockupDef }) => {
         width={def.nativeWidth}
         height={def.nativeHeight}
         fit="cover"
+        theme={def.defaultTheme}
         style={{ display: "block", height: "100%", width: "auto", maxWidth: "100%" }}
       />
     </span>
@@ -247,6 +250,22 @@ const MockupLayerControls = ({
             label=""
             className="bg-secondary"
           />
+
+          {/* Frame color scheme (device body/border — not the screen) */}
+          <span className="mt-1 text-[11px] font-medium tracking-wide text-muted-foreground">
+            Frame
+          </span>
+          <ToggleGroup
+            variant="outline"
+            value={[mockup.mockupTheme ?? def?.defaultTheme ?? "dark"]}
+            onValueChange={(v: string[]) => {
+              if (v[0]) onUpdate({ mockupTheme: v[0] as "light" | "dark" })
+            }}
+            className="w-full *:flex-1"
+          >
+            <ToggleGroupItem value="light">Light</ToggleGroupItem>
+            <ToggleGroupItem value="dark">Dark</ToggleGroupItem>
+          </ToggleGroup>
 
           {/* Safari-only address bar URL */}
           {def?.hasUrl && (

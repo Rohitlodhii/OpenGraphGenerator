@@ -1,9 +1,10 @@
 import { create } from "zustand"
 import type { SvgNode, DefEntry } from "@/lib/svg-import"
 import type { CssGradientLayer } from "@/lib/css-presets"
+import type { ShapeGradientDirection } from "@/lib/shape-gradient"
 
 export type CanvasObjectType = "text" | "image" | "svg" | "pattern" | "blob" | "motif" | "importedSvg" | "mockup" | "ascii" | "cssPreset"
-export type CanvasShapeType = "circle" | "rectangle" | "triangle" | "square"
+export type CanvasShapeType = "circle" | "rectangle" | "triangle" | "square" | "line"
 export type CanvasTextAlign = "left" | "center" | "right" | "justify"
 export type CanvasPatternType =
   | "dots"
@@ -42,6 +43,13 @@ export interface CanvasObject {
   hidden?: boolean
   shapeType?: CanvasShapeType
   fill?: string
+  // Simple gradient fill for shapes (rectangle/square/circle/triangle/line).
+  // 2-3 colors, fixed even stops, no opacity per stop — deliberately simpler
+  // than the free-position gradient editor, which was laggy and buggy here.
+  shapeFillMode?: "solid" | "gradient"
+  shapeGradientDirection?: ShapeGradientDirection
+  shapeGradientColors?: string[]
+  shapeBorderRadius?: number
   shapeOpacity?: number
   blur?: number
   shapeShadow?: number
@@ -95,6 +103,7 @@ export interface CanvasObject {
   mockupId?: string
   mockupUrl?: string
   mockupImageFit?: "cover" | "contain"
+  mockupTheme?: "light" | "dark"
   // ASCII-art fields. The source image reuses `src`; the rest configure the
   // AsciiArt renderer (see components/ui/ascii-art.tsx).
   asciiResolution?: number
@@ -128,6 +137,7 @@ interface CanvasState {
   addObject: (object: CanvasObject) => void
   updateObject: (id: string, updates: Partial<CanvasObject>) => void
   removeObject: (id: string) => void
+  duplicateObject: (id: string) => void
   setSelectedObjectId: (id: string | null) => void
   bringForward: (id: string) => void
   sendBackward: (id: string) => void
@@ -190,6 +200,13 @@ const moveObjectToEnd = (objects: CanvasObject[], id: string, toTop: boolean) =>
 // insertion order). Exported for the global layers panel.
 export const getStackingOrder = (objects: CanvasObject[]) => orderObjects(objects)
 
+const createObjectId = () => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID()
+  }
+  return `object-${Date.now()}-${Math.floor(Math.random() * 100000)}`
+}
+
 export const useCanvasStore = create<CanvasState>((set) => ({
   objects: [],
   selectedObjectId: null,
@@ -212,6 +229,26 @@ export const useCanvasStore = create<CanvasState>((set) => ({
       objects: state.objects.filter((object) => object.id !== id),
       selectedObjectId: state.selectedObjectId === id ? null : state.selectedObjectId,
     })),
+
+  // Copies an object with a fresh id, nudged slightly so it doesn't sit
+  // exactly on top of the original, and raised above every existing object.
+  duplicateObject: (id) =>
+    set((state) => {
+      const source = state.objects.find((object) => object.id === id)
+      if (!source) return state
+      const maxZIndex = state.objects.reduce((max, object) => Math.max(max, object.zIndex ?? 0), 0)
+      const duplicate: CanvasObject = {
+        ...source,
+        id: createObjectId(),
+        x: source.x + 24,
+        y: source.y + 24,
+        zIndex: maxZIndex + 1,
+      }
+      return {
+        objects: [...state.objects, duplicate],
+        selectedObjectId: duplicate.id,
+      }
+    }),
 
   setSelectedObjectId: (id) => set({ selectedObjectId: id }),
 

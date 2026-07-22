@@ -2,9 +2,9 @@ import { create } from "zustand"
 
 interface BackgroundState {
   backgroundColor: string
-  backgroundType: 'solid' | 'mesh' | 'image' | 'Svg Gradient' | 'gradient'
+  backgroundType: 'solid' | 'mesh' | 'image' | 'Svg Gradient' | 'gradient' | 'customGradient'
   setBackgroundColor: (color: string) => void
-  setBackgroundType: (type: 'solid' | 'mesh' | 'image' | 'Svg Gradient' | 'gradient') => void
+  setBackgroundType: (type: 'solid' | 'mesh' | 'image' | 'Svg Gradient' | 'gradient' | 'customGradient') => void
 }
 
 export const useBackgroundStore = create<BackgroundState>((set) => ({

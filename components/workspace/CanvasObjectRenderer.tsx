@@ -23,6 +23,7 @@ import {
   ArrowUpToLine,
   ArrowDown,
   ArrowDownToLine,
+  Copy,
   GripHorizontal,
   GripVertical,
   ImageDown,
@@ -30,6 +31,7 @@ import {
 } from "lucide-react"
 import { useBackgroundStore } from "@/store/backgroundstore"
 import { useImageStore } from "@/store/imagestore"
+import { buildShapeGradientCss, getShapeGradientSvgVector } from "@/lib/shape-gradient"
 
 type CanvasObjectRendererProps = {
   object: CanvasObject
@@ -43,6 +45,7 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
   const nodeRef = useRef<HTMLDivElement>(null)
   const updateObject = useCanvasStore((state) => state.updateObject)
   const removeObject = useCanvasStore((state) => state.removeObject)
+  const duplicateObject = useCanvasStore((state) => state.duplicateObject)
   const bringForward = useCanvasStore((state) => state.bringForward)
   const sendBackward = useCanvasStore((state) => state.sendBackward)
   const bringToFront = useCanvasStore((state) => state.bringToFront)
@@ -195,7 +198,6 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
     if (selectedObjectId !== object.id || isTextEditing) return
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Delete" && event.key !== "Backspace") return
       const target = event.target as HTMLElement | null
       const tag = target?.tagName
       if (
@@ -206,13 +208,22 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
       ) {
         return
       }
-      event.preventDefault()
-      removeObject(object.id)
+
+      if (event.key === "Delete" || event.key === "Backspace") {
+        event.preventDefault()
+        removeObject(object.id)
+        return
+      }
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
+        event.preventDefault()
+        duplicateObject(object.id)
+      }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [selectedObjectId, object.id, isTextEditing, removeObject])
+  }, [selectedObjectId, object.id, isTextEditing, removeObject, duplicateObject])
 
   const contentStyle = useMemo<React.CSSProperties>(
     () => ({
@@ -282,6 +293,12 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
       const width = object.width ?? 160
       const height = object.height ?? 160
       const fill = object.fill ?? "#ffffff"
+      const isGradient = object.shapeFillMode === "gradient"
+      const gradientDirection = object.shapeGradientDirection ?? "to-b"
+      const gradientColors =
+        object.shapeGradientColors && object.shapeGradientColors.length >= 2
+          ? object.shapeGradientColors
+          : ["#6366f1", "#ec4899"]
       const shapeOpacity = Math.max(0, Math.min(100, object.shapeOpacity ?? 100)) / 100
       const strokeColor = object.strokeColor
       const strokeWidth = object.strokeColor ? object.strokeWidth ?? 2 : 0
@@ -295,8 +312,25 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
       ]
         .filter(Boolean)
         .join(" ")
+      // Circles are always fully round by definition; every other shape
+      // defaults to square corners (0) and is adjustable via a slider.
+      const borderRadius =
+        object.shapeType === "circle" ? "9999px" : `${Math.max(0, object.shapeBorderRadius ?? 0)}px`
 
       if (object.shapeType === "triangle") {
+        // object.id is already unique across shapes, so it doubles as a safe
+        // gradient id — no risk of colliding <linearGradient>/<radialGradient>
+        // ids between multiple triangles (see mockups' clipPath fix for why
+        // that collision is a real bug, not a theoretical one).
+        const gradientId = `shape-gradient-${object.id}`
+        const vector = getShapeGradientSvgVector(gradientDirection)
+        const gradientStops = gradientColors.map((color, index) => (
+          <stop
+            key={index}
+            offset={`${gradientColors.length > 1 ? (index / (gradientColors.length - 1)) * 100 : 0}%`}
+            stopColor={color}
+          />
+        ))
         return (
           <svg
             style={{
@@ -310,9 +344,22 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
             viewBox={`0 0 ${width} ${height}`}
             xmlns="http://www.w3.org/2000/svg"
           >
+            {isGradient && (
+              <defs>
+                {vector ? (
+                  <linearGradient id={gradientId} x1={vector.x1} y1={vector.y1} x2={vector.x2} y2={vector.y2}>
+                    {gradientStops}
+                  </linearGradient>
+                ) : (
+                  <radialGradient id={gradientId} cx="50%" cy="50%" r="50%">
+                    {gradientStops}
+                  </radialGradient>
+                )}
+              </defs>
+            )}
             <polygon
               points={`${width / 2},0 ${width},${height} 0,${height}`}
-              fill={fill}
+              fill={isGradient ? `url(#${gradientId})` : fill}
               stroke={strokeColor ?? "none"}
               strokeWidth={strokeWidth}
             />
@@ -326,13 +373,10 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
             ...contentStyle,
             width,
             height,
-            backgroundColor: fill,
-            borderRadius:
-              object.shapeType === "circle"
-                ? "9999px"
-                : object.shapeType === "rectangle"
-                  ? "10px"
-                  : "4px",
+            background: isGradient
+              ? buildShapeGradientCss(gradientDirection, gradientColors)
+              : fill,
+            borderRadius,
             border:
               strokeColor && strokeWidth > 0
                 ? `${strokeWidth}px solid ${strokeColor}`
@@ -396,11 +440,10 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
           style={{
             left: 0,
             top: 0,
-            // Selected object is lifted to the top so it stays draggable even
-            // when it sits behind other elements. Its persisted zIndex (used by
-            // the layers panel) is unchanged.
-            zIndex:
-              selectedObjectId === object.id ? 9999 : object.zIndex ?? order + 1,
+            // Stays at its real stacking position while selected — no jump to
+            // front — so selecting/deselecting an object behind others doesn't
+            // shuffle the visible layering underneath it.
+            zIndex: object.zIndex ?? order + 1,
           }}
         >
           {/* Selection is handled on this inner wrapper, not on the trigger:
@@ -521,6 +564,10 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
             Set as background
           </ContextMenuItem>
         )}
+        <ContextMenuItem onClick={() => duplicateObject(object.id)}>
+          <Copy />
+          Duplicate
+        </ContextMenuItem>
         <ContextMenuItem
           variant="destructive"
           onClick={() => removeObject(object.id)}

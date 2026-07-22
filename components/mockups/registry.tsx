@@ -13,6 +13,8 @@ export type MockupComponentProps = SVGProps<SVGSVGElement> & {
   src?: string
   url?: string
   fit?: "cover" | "contain"
+  // Frame/border color scheme (screen color is separate — see `fill`/currentColor).
+  theme?: "light" | "dark"
 }
 
 export type MockupDef = {
@@ -30,6 +32,9 @@ export type MockupDef = {
   defaultWidth: number
   // Whether this mockup exposes an editable address-bar URL (Safari only).
   hasUrl: boolean
+  // Frame color scheme new objects are created with (matches each device's
+  // original hardcoded look, so existing canvases render unchanged).
+  defaultTheme: "light" | "dark"
 }
 
 export const mockups: MockupDef[] = [
@@ -42,6 +47,7 @@ export const mockups: MockupDef[] = [
     aspect: 200 / 400,
     defaultWidth: 200,
     hasUrl: false,
+    defaultTheme: "dark",
   },
   {
     id: "ipad",
@@ -52,6 +58,7 @@ export const mockups: MockupDef[] = [
     aspect: 520 / 400,
     defaultWidth: 420,
     hasUrl: false,
+    defaultTheme: "dark",
   },
   {
     id: "mac",
@@ -62,6 +69,7 @@ export const mockups: MockupDef[] = [
     aspect: 600 / 500,
     defaultWidth: 460,
     hasUrl: false,
+    defaultTheme: "light",
   },
   {
     id: "safari",
@@ -72,6 +80,7 @@ export const mockups: MockupDef[] = [
     aspect: 1203 / 753,
     defaultWidth: 520,
     hasUrl: true,
+    defaultTheme: "light",
   },
 ]
 

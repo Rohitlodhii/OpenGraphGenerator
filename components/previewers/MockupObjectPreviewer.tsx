@@ -37,6 +37,7 @@ const MockupObjectPreviewer: React.FC<Props> = ({ object, style }) => {
         src={object.src || undefined}
         url={def.hasUrl ? object.mockupUrl : undefined}
         fit={object.mockupImageFit ?? "cover"}
+        theme={object.mockupTheme ?? def.defaultTheme}
         style={{ display: "block", width: "100%", height: "100%" }}
       />
     </div>

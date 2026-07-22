@@ -1,0 +1,126 @@
+{
+  "id": "478218be-6e99-4d0a-948d-f3aa726ac2cc",
+  "name": "browserbottom",
+  "createdAt": "2026-07-22T14:28:08.411Z",
+  "dimensions": {
+    "width": 1200,
+    "height": 630
+  },
+  "payload": {
+    "background": {
+      "backgroundColor": "#111111",
+      "backgroundType": "Svg Gradient"
+    },
+    "solidColor": {
+      "color": "#0f172a",
+      "blur": 0,
+      "grain": 0
+    },
+    "mesh": {
+      "baseColor": "#0f172a",
+      "blobs": [
+        {
+          "x": 0.14288305383181188,
+          "y": 0.2619873649888008,
+          "radius": 569.8213510781098,
+          "color": "#0091ff",
+          "opacity": 1,
+          "visible": true
+        },
+        {
+          "x": 0.7040018211823217,
+          "y": 0.137201477180253,
+          "radius": 602.4210948364012,
+          "color": "#4dd091",
+          "opacity": 1,
+          "visible": true
+        },
+        {
+          "x": 0.210131679540693,
+          "y": 0.430914356516393,
+          "radius": 305.0966370721021,
+          "color": "#002b50",
+          "opacity": 1,
+          "visible": true
+        }
+      ],
+      "blur": 150,
+      "grain": 0.1
+    },
+    "image": {
+      "src": null,
+      "blur": 0,
+      "grain": 0,
+      "saturation": 1,
+      "contrast": 1,
+      "brightness": 1,
+      "opacity": 100
+    },
+    "svgGradient": {
+      "pathsIndex": 1,
+      "visible": true,
+      "fills": [
+        "#05D67F",
+        "#6305D6",
+        "#043EE9",
+        "#1952FF",
+        "#2563EB",
+        "#60A5FA"
+      ],
+      "blur": 50,
+      "backgroundColor": "#000000",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    "gradient": {
+      "appliedGradientId": null
+    },
+    "canvas": {
+      "objects": [
+        {
+          "id": "dcb9a70a-ce67-45a7-918c-ce0d2601967b",
+          "type": "text",
+          "content": "Acmelabs",
+          "x": 392.00000000000006,
+          "y": 137.71428571428558,
+          "width": 360,
+          "height": 90,
+          "zIndex": 2,
+          "fontSize": 65,
+          "fontFamily": "'Instrument Serif', serif",
+          "fontWeight": 400,
+          "lineHeight": 1.15,
+          "letterSpacing": -2,
+          "fontOpacity": 100,
+          "fontStyle": "normal",
+          "textDecoration": "none",
+          "textAlign": "center",
+          "textIndent": 0,
+          "textColor": "#ffffff",
+          "textShadow": 0,
+          "textShadowColor": "#000000"
+        },
+        {
+          "id": "12f3c8c9-34d9-4a10-8cda-3772289dc043",
+          "type": "mockup",
+          "mockupId": "safari",
+          "mockupImageFit": "cover",
+          "mockupUrl": "https://example.com",
+          "fill": "#943e3e",
+          "x": 134.2857142857143,
+          "y": 312.857142857143,
+          "width": 926.8571254185268,
+          "height": 579.857177734375,
+          "rotation": 0,
+          "zIndex": 3,
+          "mockupTheme": "dark"
+        }
+      ],
+      "selectedObjectId": null
+    },
+    "dimensions": {
+      "width": 1200,
+      "height": 630
+    }
+  }
+}

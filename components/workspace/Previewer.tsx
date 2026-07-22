@@ -1,15 +1,26 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
-import { ZoomIn, ZoomOut, Download, Lock, Unlock, ImagePlus } from "lucide-react"
+import { ZoomIn, ZoomOut, Download, Lock, Unlock, ImagePlus, Grid3x3, Settings2, MoreVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Group } from "@/components/ui/group"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
 import useDimensionStore from "@/hooks/dimension"
 import Stage from "./Stage"
 import BackgroundRenderer from "./BackgroundRenderer"
 import ObjectsLayer from "./ObjectsLayer"
+import GridOverlay from "./GridOverlay"
+import GridSettingsDialog from "./GridSettingsDialog"
 import ExportDialog from "./ExportDialog"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useCanvasStore } from "@/store/canvasstore"
+import { useGridStore } from "@/store/gridstore"
 import { importImageFileLocally } from "@/lib/local-image-assets"
 
 const createImageId = () => {
@@ -39,7 +50,10 @@ const Previewer = () => {
   const isMobile = useIsMobile()
   const [zoomOverride, setZoomOverride] = useState<number | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
+  const [gridSettingsOpen, setGridSettingsOpen] = useState(false)
   const [locked, setLocked] = useState(false)
+  const gridVisible = useGridStore((s) => s.gridVisible)
+  const toggleGrid = useGridStore((s) => s.toggleGrid)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [isImageDragging, setIsImageDragging] = useState(false)
   const addObject = useCanvasStore((state) => state.addObject)
@@ -256,6 +270,7 @@ const Previewer = () => {
         <Stage width={width} height={height} zoom={zoom} locked={locked} position={pan} onPositionChange={setPan}>
           <BackgroundRenderer width={width} height={height} />
           <ObjectsLayer zoom={zoom} />
+          <GridOverlay width={width} height={height} />
         </Stage>
 
         {isImageDragging && (
@@ -290,6 +305,36 @@ const Previewer = () => {
             {locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
           </button>
         )}
+
+        {/* Mobile grid menu — the full toolbar is desktop-only (`hidden md:flex`
+            below), so grid controls get their own floating trigger here. */}
+        {isMobile && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="Grid options"
+                className="absolute top-2 right-2 z-40 flex h-9 w-9 items-center justify-center rounded-full border shadow-lg bg-card text-muted-foreground border-border"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuCheckboxItem
+                checked={gridVisible}
+                onCheckedChange={toggleGrid}
+                onSelect={(event) => event.preventDefault()}
+              >
+                <Grid3x3 />
+                Grid
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuItem onClick={() => setGridSettingsOpen(true)}>
+                <Settings2 />
+                Grid settings
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* Toolbar */}
@@ -311,6 +356,31 @@ const Previewer = () => {
 
         <div className="w-px h-5 bg-border mx-1"></div>
 
+        <Group>
+          <Button
+            onClick={toggleGrid}
+            variant={gridVisible ? "secondary" : "ghost"}
+            size="sm"
+            aria-pressed={gridVisible}
+            aria-label="Toggle grid lines"
+            title="Toggle grid lines"
+          >
+            <Grid3x3 className="w-4 h-4" />
+          </Button>
+
+          <Button
+            onClick={() => setGridSettingsOpen(true)}
+            variant="ghost"
+            size="sm"
+            aria-label="Grid settings"
+            title="Grid settings"
+          >
+            <Settings2 className="w-4 h-4" />
+          </Button>
+        </Group>
+
+        <div className="w-px h-5 bg-border mx-1"></div>
+
         <Button onClick={() => setExportOpen(true)}  size="sm" className="text-xs ">
           <Download className="w-4 h-4" />
           Export
@@ -319,6 +389,7 @@ const Previewer = () => {
       </div>
 
       <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
+      <GridSettingsDialog open={gridSettingsOpen} onOpenChange={setGridSettingsOpen} />
 
     </div>
   )

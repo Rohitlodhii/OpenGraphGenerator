@@ -6,6 +6,7 @@ import { useMeshStore } from "@/store/meshstore"
 import { useSolidColorStore } from "@/store/solidcolorstore"
 import useSvgGradientStore from "@/store/svggradientstore"
 import { useGradientStore } from "@/store/gradientstore"
+import { useCustomGradientStore } from "@/store/customgradientstore"
 import {
   hydrateLocalCanvasImages,
   localImageMarker,
@@ -14,7 +15,7 @@ import {
 export type DesignPayload = {
   background: {
     backgroundColor: string
-    backgroundType: "solid" | "mesh" | "image" | "Svg Gradient" | "gradient"
+    backgroundType: "solid" | "mesh" | "image" | "Svg Gradient" | "gradient" | "customGradient"
   }
   solidColor: {
     color: string
@@ -55,6 +56,13 @@ export type DesignPayload = {
   gradient: {
     appliedGradientId: string | null
   }
+  customGradient: {
+    mode: "linear" | "radial"
+    angle: number
+    radialShape: "circle" | "ellipse"
+    stops: { id: string; color: string; position: number; opacity: number }[]
+    grain: number
+  }
   canvas: {
     objects: ReturnType<typeof useCanvasStore.getState>["objects"]
     selectedObjectId: string | null
@@ -73,6 +81,7 @@ export const buildPayload = (): DesignPayload => {
   const image = useImageStore.getState()
   const svg = useSvgGradientStore.getState()
   const gradient = useGradientStore.getState()
+  const customGradient = useCustomGradientStore.getState()
   const canvas = useCanvasStore.getState()
   const dims = useDimensionStore.getState()
 
@@ -112,6 +121,13 @@ export const buildPayload = (): DesignPayload => {
     },
     gradient: {
       appliedGradientId: gradient.appliedGradientId,
+    },
+    customGradient: {
+      mode: customGradient.mode,
+      angle: customGradient.angle,
+      radialShape: customGradient.radialShape,
+      stops: customGradient.stops.map((stop) => ({ ...stop })),
+      grain: customGradient.grain,
     },
     canvas: {
       objects: canvas.objects.map((object) => ({
@@ -175,6 +191,16 @@ export const applyPayload = (payload: DesignPayload) => {
   useGradientStore.setState({
     appliedGradientId: payload.gradient?.appliedGradientId ?? null,
   })
+
+  if (payload.customGradient) {
+    useCustomGradientStore.setState({
+      mode: payload.customGradient.mode,
+      angle: payload.customGradient.angle,
+      radialShape: payload.customGradient.radialShape,
+      stops: payload.customGradient.stops.map((stop) => ({ ...stop })),
+      grain: payload.customGradient.grain,
+    })
+  }
 
   useCanvasStore.setState({
     objects: payload.canvas.objects.map((object) => ({ ...object })),
