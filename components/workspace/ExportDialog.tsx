@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { Cloud, Download } from "lucide-react"
+import { Cloud, Copy, Download } from "lucide-react"
 import {
   Dialog,
   DialogPopup,
@@ -17,6 +17,7 @@ import { Slider } from "@/components/ui/slider"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { toPng, toJpeg, toSvg } from "html-to-image"
 import { useCanvasStore } from "@/store/canvasstore"
+import { authClient } from "@/lib/auth-client"
 import {
   FREE_LIMIT,
   FreeLimitReachedError,
@@ -54,13 +55,17 @@ const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [isExporting, setIsExporting] = React.useState(false)
   const [isUploading, setIsUploading] = React.useState(false)
   const [cloudStatus, setCloudStatus] = React.useState<string | null>(null)
+  const [copied, setCopied] = React.useState(false)
   const [remaining, setRemaining] = React.useState<number>(FREE_LIMIT)
+
+  const { data: session } = authClient.useSession()
 
   const selectedObjectId = useCanvasStore((s) => s.selectedObjectId)
   const setSelectedObjectId = useCanvasStore((s) => s.setSelectedObjectId)
 
   const isRaster = format !== "svg"
   const ownKey = hasImgbbKey()
+  const isSignedIn = !!session
 
   // Refresh free-tier count whenever the dialog opens.
   React.useEffect(() => {
@@ -137,6 +142,7 @@ const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
     try {
       setIsUploading(true)
       setCloudStatus("Uploading…")
+      setCopied(false)
       const dataUrl = await renderDataUrl()
       if (!dataUrl) {
         setCloudStatus("Nothing to upload.")
@@ -146,12 +152,7 @@ const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
       const stamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-")
       const { url } = await uploadToImgbb(dataUrl, `preview-${stamp}`)
 
-      try {
-        await navigator.clipboard.writeText(url)
-        setCloudStatus("Uploaded — link copied to clipboard.")
-      } catch {
-        setCloudStatus(`Uploaded: ${url}`)
-      }
+      setCloudStatus(url)
       setRemaining(freeUploadsRemaining())
     } catch (error) {
       if (error instanceof FreeLimitReachedError) {
@@ -233,9 +234,45 @@ const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           )}
         </DialogPanel>
 
-        {(cloudStatus || (isRaster && !ownKey)) && (
+        {(cloudStatus || (isRaster && !isSignedIn) || (isRaster && !ownKey)) && (
           <div className="px-6 py-2 text-sm text-muted-foreground/70">
-            {cloudStatus ?? (
+            {cloudStatus ? (
+              cloudStatus.startsWith("http") ? (
+                <div className="border rounded-md p-2 flex items-center gap-2">
+                  <a
+                    href={cloudStatus}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline underline-offset-2 truncate min-w-0 flex-1"
+                  >
+                    {cloudStatus}
+                  </a>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 shrink-0"
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(cloudStatus)
+                      setCopied(true)
+                      setTimeout(() => setCopied(false), 2000)
+                    }}
+                  >
+                    <Copy className={`size-3.5 ${copied ? "text-green-500" : ""}`} />
+                  </Button>
+                </div>
+              ) : (
+                cloudStatus
+              )
+            ) : !isSignedIn ? (
+              <Button
+                variant="link"
+                size="sm"
+                className="h-auto p-0 text-xs"
+                onClick={() => authClient.signIn.social({ provider: "github", callbackURL: window.location.href })}
+              >
+                Sign in with GitHub to upload to the cloud.
+              </Button>
+            ) : (
               <span className="tabular-nums">
                 {remaining} of {FREE_LIMIT} free cloud uploads left.
               </span>
@@ -250,7 +287,7 @@ const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
           <Button
             variant="outline"
             onClick={handleCloudUpload}
-            disabled={isUploading || isExporting || !isRaster}
+            disabled={isUploading || isExporting || !isRaster || !isSignedIn}
             className="gap-2"
           >
             <Cloud className="h-4 w-4" />
