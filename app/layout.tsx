@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     siteName: "Opengg",
     images: [
       {
-        url: "https://i.ibb.co/Hf5NfwsZ/preview-2026-07-23-17-46-25.png",
+        url: "https://i.ibb.co/6RmCQhKH/opengg.jpg",
         width: 2400,
         height: 1260,
         alt: "Opengg Open Graph image generator preview",
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description,
-    images: ["https://i.ibb.co/Hf5NfwsZ/preview-2026-07-23-17-46-25.png"],
+    images: ["https://i.ibb.co/6RmCQhKH/opengg.jpg"],
   },
   robots: {
     index: true,
