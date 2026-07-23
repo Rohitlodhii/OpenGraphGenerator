@@ -33,10 +33,19 @@ type Props = {
 }
 
 const SCALES = [1, 2, 3] as const
+const TRANSPARENT_IMAGE_PLACEHOLDER =
+  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
 
 // Skips the grid alignment overlay (and anything else marked export-ignore)
 // so it never ends up baked into the exported image.
 const exportFilter = (node: HTMLElement) => node.dataset?.exportIgnore !== "true"
+const BASE_EXPORT_OPTIONS = {
+  cacheBust: false,
+  filter: exportFilter,
+  imagePlaceholder: TRANSPARENT_IMAGE_PLACEHOLDER,
+  onImageErrorHandler: () => undefined,
+  skipFonts: true,
+} as const
 
 const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const [format, setFormat] = React.useState<Format>("png")
@@ -74,18 +83,17 @@ const ExportDialog: React.FC<Props> = ({ open, onOpenChange }) => {
 
     try {
       if (format === "png") {
-        return await toPng(stage, { cacheBust: true, pixelRatio: scale, filter: exportFilter })
+        return await toPng(stage, { ...BASE_EXPORT_OPTIONS, pixelRatio: scale })
       }
       if (format === "jpeg") {
         return await toJpeg(stage, {
-          cacheBust: true,
+          ...BASE_EXPORT_OPTIONS,
           pixelRatio: scale,
           quality: quality / 100,
           backgroundColor: "#ffffff",
-          filter: exportFilter,
         })
       }
-      return await toSvg(stage, { cacheBust: true, filter: exportFilter })
+      return await toSvg(stage, BASE_EXPORT_OPTIONS)
     } finally {
       setSelectedObjectId(previousSelected)
     }

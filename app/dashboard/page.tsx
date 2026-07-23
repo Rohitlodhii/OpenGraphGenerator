@@ -21,6 +21,7 @@ import {
   syncLocalToDb,
   newProject,
 } from "@/lib/projects"
+import { listTemplates, type TemplateSummary } from "@/lib/templates"
 import { useCurrentProjectStore } from "@/store/currentprojectstore"
 
 const fmtDate = (iso: string) => {
@@ -42,10 +43,13 @@ export default function DashboardHome() {
 
   const [mounted, setMounted] = React.useState(false)
   const [projects, setProjects] = React.useState<ProjectSummary[]>([])
+  const [templates, setTemplates] = React.useState<TemplateSummary[]>([])
   const [loading, setLoading] = React.useState(false)
+  const [templatesLoading, setTemplatesLoading] = React.useState(false)
   const [syncing, setSyncing] = React.useState(false)
   const [showSync, setShowSync] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [templatesError, setTemplatesError] = React.useState<string | null>(null)
   const [authOpen, setAuthOpen] = React.useState(false)
   const [deleteId, setDeleteId] = React.useState<string | null>(null)
 
@@ -70,6 +74,26 @@ export default function DashboardHome() {
   }, [mounted, isPending, refresh])
 
   const handleLoad = (id: string) => router.push(`/dashboard/${id}`)
+  const handleLoadTemplate = (id: string) => {
+    useCurrentProjectStore.getState().clear()
+    router.push(`/dashboard/new?template=${encodeURIComponent(id)}`)
+  }
+
+  const refreshTemplates = React.useCallback(async () => {
+    setTemplatesLoading(true)
+    setTemplatesError(null)
+    try {
+      setTemplates(await listTemplates())
+    } catch {
+      setTemplatesError("Could not load templates.")
+    } finally {
+      setTemplatesLoading(false)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (mounted) refreshTemplates()
+  }, [mounted, refreshTemplates])
 
   const handleNew = () => {
     newProject()
@@ -216,6 +240,57 @@ export default function DashboardHome() {
             No projects yet. Hit New project to start one.
           </p>
         )}
+
+        <section className="flex flex-col gap-4 pt-4">
+          <div>
+            <h2 className="font-heading text-2xl tracking-tight font-semibold">
+              Templates to start
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Pick a template and customize it in the editor.
+            </p>
+          </div>
+
+          {templatesError && <p className="text-sm text-destructive">{templatesError}</p>}
+
+          {templatesLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[1200/630] rounded-lg" />
+              ))}
+            </div>
+          ) : templates.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No templates available yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {templates.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => handleLoadTemplate(template.id)}
+                  className="group overflow-hidden rounded-lg border border-border bg-card text-left transition hover:border-primary"
+                  aria-label={`Start with ${template.name}`}
+                >
+                  <div className="aspect-[1200/630] w-full overflow-hidden bg-muted">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={template.thumbnailUrl}
+                      alt={template.name}
+                      className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1 p-3">
+                    <span className="truncate text-sm font-medium">{template.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {template.dimensions.width} x {template.dimensions.height}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
       </main>
 
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />

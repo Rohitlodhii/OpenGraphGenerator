@@ -119,6 +119,7 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
       shapeType: activeShape,
       fill: fillColor,
       shapeOpacity: 100,
+      shapeBorderRadius: 0,
       blur: 0,
       shapeShadow: 0,
       x: 60,
@@ -632,8 +633,8 @@ const ShapesPanel = ({ isOpen, onToggle, chromeless = false }: ShapesPanelProps)
                           key={`shape-radius-${shape.id}`}
                           defaultValue={[shape.shapeBorderRadius ?? 0]}
                           initialValue={[shape.shapeBorderRadius ?? 0]}
-                          label="Radius"
-                          maxValue={200}
+                          label="Corner radius"
+                          maxValue={Math.max(0, Math.floor(Math.min(shape.width ?? 0, shape.height ?? 0) / 2))}
                           minValue={0}
                           onChange={(vals) => updateObject(shape.id, { shapeBorderRadius: vals[0] })}
                         />

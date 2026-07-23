@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import Workspace from "@/components/workspace/workspace";
 import { loadLocalProject, loadDbProject } from "@/lib/projects";
+import { loadTemplate } from "@/lib/templates";
 import { useCurrentProjectStore } from "@/store/currentprojectstore";
 import { authClient } from "@/lib/auth-client";
 
-type Props = { projectId?: string };
+type Props = { projectId?: string; templateId?: string };
 
-export default function DashboardClient({ projectId }: Props) {
+export default function DashboardClient({ projectId, templateId }: Props) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const setCurrent = useCurrentProjectStore((s) => s.setCurrent);
@@ -25,7 +27,19 @@ export default function DashboardClient({ projectId }: Props) {
 
     if (!projectId) {
       clearCurrent();
-      return;
+      if (!templateId) return;
+
+      let cancelled = false;
+
+      (async () => {
+        const ok = await loadTemplate(templateId);
+        if (cancelled) return;
+        if (!ok) router.replace("/dashboard");
+      })();
+
+      return () => {
+        cancelled = true;
+      };
     }
 
     const signedIn = !!session?.user;
@@ -47,12 +61,12 @@ export default function DashboardClient({ projectId }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [mounted, isPending, projectId, session?.user, setCurrent, clearCurrent, router]);
+  }, [mounted, isPending, projectId, templateId, session?.user, setCurrent, clearCurrent, router]);
 
   if (!mounted || isPending) {
     return (
       <div className="h-screen w-full flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }

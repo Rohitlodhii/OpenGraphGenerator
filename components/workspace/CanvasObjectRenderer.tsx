@@ -314,8 +314,11 @@ const CanvasObjectRenderer: React.FC<CanvasObjectRendererProps> = ({ object, zoo
         .join(" ")
       // Circles are always fully round by definition; every other shape
       // defaults to square corners (0) and is adjustable via a slider.
+      const maxBorderRadius = Math.floor(Math.min(width, height) / 2)
       const borderRadius =
-        object.shapeType === "circle" ? "9999px" : `${Math.max(0, object.shapeBorderRadius ?? 0)}px`
+        object.shapeType === "circle"
+          ? "9999px"
+          : `${Math.min(maxBorderRadius, Math.max(0, object.shapeBorderRadius ?? 0))}px`
 
       if (object.shapeType === "triangle") {
         // object.id is already unique across shapes, so it doubles as a safe

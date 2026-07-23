@@ -29,6 +29,7 @@ const TemplateList = () => {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [saving, setSaving] = React.useState(false)
+  const canSaveTemplates = process.env.NEXT_PUBLIC_ENVIRONMENT === "dev"
 
   const refresh = React.useCallback(async () => {
     setLoading(true)
@@ -73,16 +74,17 @@ const TemplateList = () => {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Temporary: lets you create templates from the current design. */}
-      <Button
-        onClick={handleSave}
-        disabled={saving}
-        variant="secondary"
-        className="h-10 justify-start text-sm"
-      >
-        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-        Save as Template
-      </Button>
+      {canSaveTemplates && (
+        <Button
+          onClick={handleSave}
+          disabled={saving}
+          variant="secondary"
+          className="h-10 justify-start text-sm"
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Save as Template
+        </Button>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
